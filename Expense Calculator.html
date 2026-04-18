@@ -1,0 +1,3608 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Ski & Settle — Expense Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,400..700,30..100;1,9..144,400..700,30..100&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Paper / warm editorial (default) */
+  --bg: #EFE8DC;
+  --bg-soft: #E6DECF;
+  --paper: #F7F1E5;
+  --ink: #1B1A17;
+  --ink-soft: #57534A;
+  --ink-faint: #948E80;
+  --rule: #1B1A17;
+  --rule-soft: rgba(27,26,23,0.14);
+  --accent: #C9593B;     /* terracotta */
+  --accent-ink: #6E2A18;
+  --chip: #DFD5C1;
+  --pos: #3E6B4A;
+  --neg: #A7442A;
+  --font-display: "Fraunces", "Times New Roman", serif;
+  --font-ui: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace;
+  --radius: 2px;
+  --density: 1;
+}
+
+/* Alt theme: Terminal */
+body.theme-terminal {
+  --bg: #0E0E0C;
+  --bg-soft: #17170F;
+  --paper: #141412;
+  --ink: #E6E2D3;
+  --ink-soft: #9A968A;
+  --ink-faint: #5E5A50;
+  --rule: #E6E2D3;
+  --rule-soft: rgba(230,226,211,0.18);
+  --accent: #E6B14A;
+  --accent-ink: #F5D089;
+  --chip: #23221D;
+  --pos: #7FB68D;
+  --neg: #E28468;
+}
+
+/* Alt theme: Fresh / cool */
+body.theme-fresh {
+  --bg: #F3F2EE;
+  --bg-soft: #E9E7E0;
+  --paper: #FFFFFF;
+  --ink: #0F1113;
+  --ink-soft: #55595F;
+  --ink-faint: #9096A0;
+  --rule: #0F1113;
+  --rule-soft: rgba(15,17,19,0.10);
+  --accent: #2E5AAC;
+  --accent-ink: #1A3878;
+  --chip: #E3E1DA;
+  --pos: #2E7A52;
+  --neg: #B2412A;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.font-display { font-family: var(--font-display); font-feature-settings: "ss01", "ss02"; font-variation-settings: "opsz" 144, "SOFT" 30; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.tnum { font-variant-numeric: tabular-nums; }
+
+.app-shell {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 32px 40px 80px;
+}
+
+/* HEADER */
+.masthead {
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  padding: 14px 0 16px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: baseline;
+  gap: 24px;
+  position: relative;
+}
+.masthead .issue {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.masthead .title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: italic;
+  font-size: 44px;
+  line-height: 1;
+  text-align: center;
+  letter-spacing: -0.02em;
+}
+.masthead .title .amp { font-style: normal; color: var(--accent); }
+.masthead .meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-align: right;
+}
+
+/* NAV */
+.tabs {
+  display: flex;
+  gap: 2px;
+  margin: 18px 0 22px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.tab {
+  padding: 10px 18px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  position: relative;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s;
+}
+.tab:hover { color: var(--ink); }
+.tab.active {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+.tab .count {
+  color: var(--ink-faint);
+  margin-left: 6px;
+  font-weight: 400;
+}
+
+/* LAYOUT */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 378px;
+  gap: 32px;
+  align-items: start;
+}
+@media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } }
+
+/* CARDS */
+.card {
+  background: var(--paper);
+  border: 1px solid var(--rule-soft);
+  padding: 20px 22px;
+  border-radius: var(--radius);
+}
+.card + .card { margin-top: 18px; }
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.card-head h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+.card-head .sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* HERO SUMMARY */
+.hero {
+  background: var(--paper);
+  border: 1px solid var(--rule-soft);
+  padding: 28px 28px 26px;
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr 1fr;
+  gap: 0;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(90deg, transparent 0 120px, var(--rule-soft) 120px 121px);
+  pointer-events: none; opacity: 0.5;
+}
+.hero-cell {
+  padding: 0 22px;
+  border-right: 1px solid var(--rule-soft);
+  position: relative;
+  z-index: 1;
+}
+.hero-cell:first-child { padding-left: 0; }
+.hero-cell:last-child { border-right: none; padding-right: 0; }
+.hero-cell .label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+.hero-cell .value {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 38px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+.hero-cell .value .curr {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-right: 4px;
+  letter-spacing: 0;
+}
+.hero-cell .foot {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.hero-cell.primary .value { color: var(--ink); }
+.hero-trip-name {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 28px;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+.hero-trip-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+
+/* MEMBERS STRIP */
+.members-strip {
+  display: flex;
+  gap: 14px;
+  margin: 18px 0 22px;
+  padding: 14px 18px;
+  background: var(--bg-soft);
+  border: 1px solid var(--rule-soft);
+  align-items: center;
+  overflow-x: auto;
+}
+.member-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 6px 6px;
+  background: var(--paper);
+  border: 1px solid var(--rule-soft);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.12s, border-color 0.12s;
+  flex-shrink: 0;
+}
+.member-chip:hover { transform: translateY(-1px); border-color: var(--ink); }
+.member-chip.active { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+.member-chip.active .avatar { box-shadow: 0 0 0 2px var(--paper); }
+.avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 14px;
+  position: relative;
+}
+.avatar .passport {
+  position: absolute;
+  bottom: -2px; right: -2px;
+  font-size: 9px;
+  background: var(--paper);
+  border-radius: 50%;
+  width: 14px; height: 14px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--rule-soft);
+  line-height: 1;
+}
+.avatar.sm { width: 22px; height: 22px; font-size: 11px; }
+.avatar.lg { width: 44px; height: 44px; font-size: 18px; }
+.member-chip .name { font-size: 13px; font-weight: 500; }
+.member-chip .home {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+}
+.member-chip.active .home { color: rgba(255,255,255,0.6); }
+
+.add-member-btn {
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px dashed var(--ink);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.add-member-btn:hover { background: var(--ink); color: var(--paper); }
+
+/* EXPENSE LIST */
+.expense-list { }
+.expense-row {
+  display: grid;
+  grid-template-columns: 52px 1fr auto auto;
+  gap: 16px;
+  padding: 16px 6px;
+  border-bottom: 1px solid var(--rule-soft);
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.expense-row:hover { background: var(--bg-soft); }
+.expense-row:last-child { border-bottom: none; }
+.expense-date {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-align: center;
+  line-height: 1.3;
+}
+.expense-date .day {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--ink);
+  display: block;
+  letter-spacing: 0;
+}
+.expense-main .title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.expense-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--ink-soft);
+  flex-wrap: wrap;
+}
+.expense-meta .dot { color: var(--ink-faint); }
+.expense-cat {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  background: var(--chip);
+  color: var(--ink-soft);
+  border-radius: 999px;
+}
+.fx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border: 1px solid var(--rule-soft);
+  border-radius: 2px;
+  color: var(--ink-soft);
+  background: var(--paper);
+}
+.fx-chip .lock { font-size: 8px; color: var(--accent); }
+.fx-chip .rate { color: var(--ink); font-weight: 500; }
+
+.expense-amount {
+  text-align: right;
+  min-width: 140px;
+}
+.expense-amount .primary {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.expense-amount .primary .sym {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-right: 3px;
+}
+.expense-amount .secondary {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  margin-top: 2px;
+}
+
+.expense-payer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  border: 1px solid var(--rule-soft);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.expense-payer .name {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+/* BALANCES PANEL */
+.balance-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.balance-row:last-child { border-bottom: none; }
+.balance-row .who {
+  display: flex; align-items: center; gap: 10px;
+}
+.balance-row .who .name {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 500;
+}
+.balance-row .who .home {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+}
+.balance-bar {
+  height: 6px;
+  background: var(--bg-soft);
+  border-radius: 999px;
+  position: relative;
+  overflow: hidden;
+}
+.balance-bar .fill {
+  position: absolute;
+  top: 0; bottom: 0;
+  border-radius: 999px;
+}
+.balance-bar.pos .fill { background: var(--pos); left: 50%; }
+.balance-bar.neg .fill { background: var(--neg); right: 50%; }
+.balance-bar .zero { position: absolute; top: -2px; bottom: -2px; left: 50%; width: 1px; background: var(--ink); }
+.balance-amount {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  min-width: 90px;
+  text-align: right;
+}
+.balance-amount.pos { color: var(--pos); }
+.balance-amount.neg { color: var(--neg); }
+.balance-amount .sub {
+  display: block;
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-top: 1px;
+}
+
+/* BTNS */
+.btn {
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 10px 18px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: background 0.15s, color 0.15s;
+}
+.btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.ghost { background: transparent; color: var(--ink); }
+.btn.ghost:hover { background: var(--ink); color: var(--paper); }
+.btn.accent { background: var(--accent); border-color: var(--accent); }
+.btn.accent:hover { background: var(--accent-ink); }
+
+.btn-row { display: flex; gap: 10px; }
+
+/* MODAL */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(27,26,23,0.5);
+  z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px 20px;
+  animation: fadeIn 0.2s ease;
+}
+.modal {
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  width: 640px;
+  max-width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: slideUp 0.3s cubic-bezier(.2,.8,.2,1);
+}
+.modal-head {
+  padding: 22px 28px 18px;
+  border-bottom: 1px solid var(--ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.modal-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 30px;
+  font-weight: 400;
+}
+.modal-close {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--ink);
+  line-height: 1;
+}
+.modal-body { padding: 24px 28px; }
+.modal-foot {
+  padding: 16px 28px;
+  border-top: 1px solid var(--rule-soft);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-soft);
+}
+
+/* FORMS */
+.field { margin-bottom: 18px; }
+.field-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+  display: block;
+}
+.field-input, .field-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--rule-soft);
+  border-bottom: 1px solid var(--ink);
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: 15px;
+  color: var(--ink);
+  border-radius: 0;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.field-input:focus, .field-select:focus { border-bottom-color: var(--accent); border-bottom-width: 2px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* AMOUNT INPUT (mono + currency prefix) */
+.amount-input {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--rule-soft);
+  border-bottom: 1px solid var(--ink);
+  padding: 0 12px;
+}
+.amount-input:focus-within { border-bottom-color: var(--accent); border-bottom-width: 2px; }
+.amount-input .curr {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink-soft);
+  padding-right: 10px;
+  border-right: 1px solid var(--rule-soft);
+  margin-right: 10px;
+}
+.amount-input input {
+  flex: 1;
+  padding: 12px 0;
+  border: none;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--ink);
+  outline: none;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* SPLIT PILLS */
+.split-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.split-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 6px;
+  background: var(--bg-soft);
+  border: 1px solid var(--rule-soft);
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  opacity: 0.4;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+.split-pill.on { opacity: 1; border-color: var(--ink); background: var(--paper); }
+.split-pill .share {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+}
+
+/* FX LOCK WIDGET */
+.fx-lock-widget {
+  border: 1px solid var(--rule-soft);
+  padding: 14px 16px;
+  background: var(--bg-soft);
+  margin-top: 10px;
+}
+.fx-lock-widget .hd {
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+.fx-lock-widget .hd .lock-icon {
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.fx-lock-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 10px;
+  align-items: end;
+}
+.fx-lock-row .fx-eq {
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--ink-faint);
+  text-align: center;
+  padding-bottom: 4px;
+}
+.fx-lock-note {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-top: 10px;
+  letter-spacing: 0.04em;
+}
+.fx-market-delta {
+  display: inline-flex; gap: 4px;
+  color: var(--pos);
+}
+.fx-market-delta.neg { color: var(--neg); }
+
+/* RECEIPT SCAN */
+.receipt-drop {
+  border: 2px dashed var(--ink);
+  padding: 40px 20px;
+  text-align: center;
+  margin-bottom: 18px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.15s;
+  background: var(--bg-soft);
+}
+.receipt-drop:hover { background: var(--chip); }
+.receipt-drop.scanning {
+  border-style: solid;
+  border-color: var(--accent);
+}
+.receipt-drop.scanning::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: scanLine 1.2s ease-in-out infinite;
+}
+@keyframes scanLine {
+  0% { top: 0; opacity: 1; }
+  100% { top: 100%; opacity: 0.2; }
+}
+.receipt-drop .icon {
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-style: italic;
+  color: var(--ink-faint);
+  margin-bottom: 6px;
+}
+.receipt-drop .hint { font-size: 13px; color: var(--ink-soft); }
+.receipt-drop .hint strong { color: var(--ink); }
+.receipt-drop.scanning .hint strong { color: var(--accent); }
+
+/* SETTLEMENT GRAPH */
+.settle-wrap {
+  padding: 30px 20px;
+  position: relative;
+}
+.settle-svg {
+  width: 100%;
+  height: 520px;
+  display: block;
+}
+.settle-legend {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+.settle-stat {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.settle-stat .val {
+  font-family: var(--font-display);
+  font-size: 26px;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.settle-list-item {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto;
+  gap: 16px;
+  padding: 16px 18px;
+  align-items: center;
+  border: 1px solid var(--rule-soft);
+  background: var(--paper);
+  margin-bottom: 10px;
+}
+.settle-arrow {
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--accent);
+}
+.settle-who {
+  display: flex; align-items: center; gap: 10px;
+}
+.settle-who .name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 16px;
+}
+.settle-who .home {
+  font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); letter-spacing: 0.06em;
+}
+.settle-who.to { justify-content: flex-end; text-align: right; }
+.settle-amt {
+  text-align: right;
+}
+.settle-amt .primary {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 500;
+}
+.settle-amt .secondary {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+
+/* MOBILE FRAME */
+.mobile-frame {
+  width: 360px;
+  height: 740px;
+  margin: 40px auto;
+  background: var(--paper);
+  border: 10px solid var(--ink);
+  border-radius: 38px;
+  box-shadow: 0 40px 80px -30px rgba(0,0,0,0.35);
+  position: relative;
+  overflow: hidden;
+}
+.mobile-frame::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 110px;
+  height: 26px;
+  background: var(--ink);
+  border-radius: 0 0 14px 14px;
+  z-index: 10;
+}
+.mobile-screen {
+  height: 100%;
+  overflow-y: auto;
+  padding: 42px 18px 22px;
+}
+
+/* TWEAKS PANEL */
+.tweaks-panel {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 280px;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  padding: 18px;
+  z-index: 50;
+  box-shadow: 0 20px 40px -20px rgba(0,0,0,0.35);
+  display: none;
+}
+.tweaks-panel.open { display: block; }
+.tweaks-panel h4 {
+  margin: 0 0 14px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 500;
+}
+.tweak-group { margin-bottom: 14px; }
+.tweak-group .label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+.tweak-opts { display: flex; gap: 6px; flex-wrap: wrap; }
+.tweak-opt {
+  padding: 6px 10px;
+  border: 1px solid var(--rule-soft);
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: var(--ink);
+  border-radius: 2px;
+}
+.tweak-opt.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* DETAIL OVERLAY */
+.detail-overlay {
+  background: var(--paper);
+  border-left: 1px solid var(--ink);
+}
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ACTION BAR */
+.action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  gap: 16px;
+}
+.action-bar .spacer { flex: 1; }
+.filter-chips { display: flex; gap: 6px; }
+.filter-chip {
+  padding: 6px 12px;
+  border: 1px solid var(--rule-soft);
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: var(--ink-soft);
+  border-radius: 999px;
+}
+.filter-chip:hover { color: var(--ink); border-color: var(--ink); }
+.filter-chip.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* MOBILE VIEW TOGGLE */
+.view-switcher {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 40;
+  display: flex;
+  gap: 2px;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  padding: 3px;
+}
+.view-switcher button {
+  background: transparent;
+  border: none;
+  padding: 6px 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: var(--ink);
+}
+.view-switcher button.on { background: var(--ink); color: var(--paper); }
+
+/* Scroll style */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--rule-soft); border-radius: 4px; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 12px 20px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  z-index: 200;
+  animation: slideUp 0.3s;
+}
+
+/* Mobile-specific overrides */
+.mobile-screen .hero {
+  display: block;
+  padding: 18px;
+  border-left: none; border-right: none; border-top: none;
+}
+.mobile-screen .hero-cell { border: none; padding: 0; margin-bottom: 14px; }
+.mobile-screen .hero-cell .value { font-size: 28px; }
+.mobile-screen .tabs { overflow-x: auto; }
+.mobile-screen .expense-row {
+  grid-template-columns: 44px 1fr auto;
+  gap: 10px;
+  padding: 12px 4px;
+}
+.mobile-screen .expense-payer { display: none; }
+.mobile-screen .expense-amount { min-width: 80px; }
+.mobile-screen .expense-amount .primary { font-size: 16px; }
+.mobile-screen .members-strip { padding: 10px 12px; gap: 8px; }
+.mobile-screen .card { padding: 14px; }
+.mobile-screen .action-bar { flex-wrap: wrap; }
+.mobile-screen .masthead { padding: 10px 0 12px; grid-template-columns: 1fr; text-align: center; }
+.mobile-screen .masthead .issue, .mobile-screen .masthead .meta { text-align: center; font-size: 9px; }
+.mobile-screen .masthead .title { font-size: 28px; }
+
+</style>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+<rect width="160" height="160" fill="#EFE8DC"/>
+<text x="80" y="70" text-anchor="middle" font-family="serif" font-style="italic" font-size="28" fill="#1B1A17">Ski</text>
+<text x="80" y="100" text-anchor="middle" font-family="serif" font-style="italic" font-size="28" fill="#C9593B">&amp; Settle</text>
+<text x="80" y="126" text-anchor="middle" font-family="monospace" font-size="10" fill="#57534A" letter-spacing="1">¥ · A$ · S$</text>
+</svg>
+</template>
+</head>
+<body>
+<div id="root"></div>
+<script>
+  /*EDITMODE-BEGIN*/window.__TWEAKS = {
+    "theme": "paper",
+    "currencyMode": "both",
+    "density": "cozy"
+  }/*EDITMODE-END*/;
+</script>
+
+<script>
+// Sample trip data — Family ski trip in Japan
+// Each member has two flags that control their role in money flows:
+//   canPay          — true means they show up in the "paid by" picker (almost always true)
+//   splitsByDefault — true means they're pre-ticked in new expenses' split set
+// Per-expense, any split membership can be overridden by tapping pills.
+window.TRIP_DATA = {
+  trip: {
+    name: "Niseko Powder Week",
+    location: "Niseko, Hokkaido · Japan",
+    dates: "Feb 14 — Feb 21, 2026",
+    baseCurrency: "JPY",
+    baseCurrencySymbol: "¥",
+    baseCurrencyFlag: "🇯🇵",
+  },
+  members: [
+    // "Sponsors" — pay the card, opt out of the split by default
+    { id: "P1", name: "Mum",    initials: "M", home: "AUD", homeFlag: "🇦🇺", color: "#6E2A18", canPay: true, splitsByDefault: false },
+    { id: "P2", name: "Dad",    initials: "D", home: "AUD", homeFlag: "🇦🇺", color: "#2E4A3A", canPay: true, splitsByDefault: false },
+    // Full participants — pay and split
+    { id: "C1", name: "Alex",   initials: "A", home: "AUD", homeFlag: "🇦🇺", color: "#C9593B", canPay: true, splitsByDefault: true },
+    { id: "C2", name: "Bec",    initials: "B", home: "AUD", homeFlag: "🇦🇺", color: "#5B7C6A", canPay: true, splitsByDefault: true },
+    { id: "C3", name: "Chloe",  initials: "C", home: "SGD", homeFlag: "🇸🇬", color: "#8A5A8C", canPay: true, splitsByDefault: true },
+    { id: "C4", name: "Ethan",  initials: "E", home: "SGD", homeFlag: "🇸🇬", color: "#3E5C78", canPay: true, splitsByDefault: true },
+  ],
+  marketRates: { JPY_per_AUD: 98.40, JPY_per_SGD: 114.20, AUD_per_SGD: 1.160 },
+  expenses: [
+    { id: "e1", date: "Feb 14", title: "Welcome dinner — Kamimura", category: "Food",
+      amount: 84000, currency: "JPY", payer: "P1",
+      lockedRate: { from: "AUD", rate: 97.80, note: "CBA debit card" },
+      payerEquivalent: { currency: "AUD", amount: 858.90 },
+      split: { type: "equal", among: ["C1","C2","C3","C4"] }, receipt: true,
+    },
+    { id: "e2", date: "Feb 15", title: "Lift passes — 5 day", category: "Activity",
+      amount: 172500, currency: "JPY", payer: "C3",
+      lockedRate: { from: "SGD", rate: 113.90, note: "DBS Multiplier" },
+      payerEquivalent: { currency: "SGD", amount: 1514.49 },
+      split: { type: "equal", among: ["C1","C2","C3","C4"] }, receipt: true,
+    },
+    { id: "e3", date: "Feb 15", title: "Groceries — Seicomart", category: "Food",
+      amount: 12480, currency: "JPY", payer: "C2",
+      lockedRate: { from: "AUD", rate: 98.10, note: "Wise card" },
+      payerEquivalent: { currency: "AUD", amount: 127.22 },
+      split: { type: "equal", among: ["C1","C2","C3","C4"] }, receipt: false,
+    },
+    { id: "e4", date: "Feb 16", title: "Ski rentals (x3, Ethan has own)", category: "Activity",
+      amount: 48000, currency: "JPY", payer: "C4",
+      lockedRate: { from: "SGD", rate: 114.40, note: "UOB One" },
+      payerEquivalent: { currency: "SGD", amount: 419.58 },
+      split: { type: "equal", among: ["C1","C2","C3"] }, receipt: true,
+    },
+    { id: "e5", date: "Feb 17", title: "Izakaya — Bang Bang", category: "Food",
+      amount: 38600, currency: "JPY", payer: "P2",
+      lockedRate: { from: "AUD", rate: 98.60, note: "ING Orange" },
+      payerEquivalent: { currency: "AUD", amount: 391.48 },
+      split: { type: "equal", among: ["C1","C2","C3","C4"] }, receipt: true,
+    },
+    { id: "e6", date: "Feb 18", title: "Onsen — Yukoro", category: "Activity",
+      amount: 9000, currency: "JPY", payer: "P1",
+      lockedRate: { from: "AUD", rate: 97.80, note: "CBA debit card" },
+      payerEquivalent: { currency: "AUD", amount: 92.02 },
+      split: { type: "equal", among: ["C1","C2","C3","C4"] }, receipt: false,
+    },
+    { id: "e7", date: "Feb 18", title: "Taxi — Kutchan return", category: "Transport",
+      amount: 14200, currency: "JPY", payer: "C3",
+      lockedRate: { from: "SGD", rate: 113.90, note: "DBS Multiplier" },
+      payerEquivalent: { currency: "SGD", amount: 124.67 },
+      split: { type: "equal", among: ["C1","C2","C3","C4"] }, receipt: false,
+    },
+    { id: "e8", date: "Feb 19", title: "Airbnb — final balance", category: "Lodging",
+      amount: 420000, currency: "JPY", payer: "P2",
+      lockedRate: { from: "AUD", rate: 98.10, note: "Wise card" },
+      payerEquivalent: { currency: "AUD", amount: 4281.34 },
+      split: { type: "equal", among: ["C1","C2","C3","C4"] }, receipt: true,
+    },
+  ],
+};
+
+</script>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script>
+// ============================================================================
+// translate.js — browser-native translation helper.
+//
+// Uses the Chrome Translator API (translator.translate) when available
+// (Chrome 138+, behind --enable-experimental-web-platform-features on some
+// builds; on by default in Chrome Canary / stable as of 2025).
+//
+// Falls back to a built-in mini-dictionary for common JP receipt items so
+// something useful always appears, even on Safari/Firefox/old Chrome.
+//
+// Exposes: window.translator = {
+//   isAvailable(srcLang, dstLang)     -> 'native' | 'dict' | false
+//   requestConsent(srcLang)           -> promise<bool>  (triggers pack download)
+//   translate(text, srcLang)          -> promise<{translated, engine}>
+//   status: { engine, dictHits, nativeHits }
+// }
+// ============================================================================
+
+(function () {
+  // --- Mini dictionary: katakana / kanji -> english ------------------------
+  // Small but covers 80% of JP convenience-store / restaurant receipt items.
+  const DICT = {
+    // Drinks
+    "ビール": "beer", "ビ—ル": "beer", "生ビール": "draft beer",
+    "酒": "sake", "日本酒": "sake", "ワイン": "wine",
+    "ウイスキー": "whisky", "ウォッカ": "vodka",
+    "水": "water", "お水": "water", "ミネラルウォーター": "mineral water",
+    "お茶": "tea", "緑茶": "green tea", "紅茶": "black tea", "コーヒー": "coffee",
+    "ジュース": "juice", "牛乳": "milk", "コーラ": "cola",
+    // Food
+    "ご飯": "rice", "ライス": "rice", "米": "rice",
+    "パン": "bread", "サンドイッチ": "sandwich",
+    "おにぎり": "rice ball", "鮭おにぎり": "salmon rice ball",
+    "弁当": "bento", "お弁当": "bento box",
+    "ラーメン": "ramen", "うどん": "udon", "そば": "soba", "寿司": "sushi",
+    "刺身": "sashimi", "天ぷら": "tempura", "焼鳥": "yakitori",
+    "肉": "meat", "牛肉": "beef", "豚肉": "pork", "鶏肉": "chicken", "魚": "fish",
+    "サラダ": "salad", "スープ": "soup", "味噌汁": "miso soup",
+    "チョコ": "chocolate", "チョコレート": "chocolate",
+    "お菓子": "snacks", "スナック": "snack", "アイス": "ice cream",
+    "りんご": "apple", "バナナ": "banana", "みかん": "mandarin",
+    // Toiletries / household
+    "シャンプー": "shampoo", "コンディショナー": "conditioner",
+    "リンス": "conditioner", "石鹸": "soap", "ソープ": "soap",
+    "歯ブラシ": "toothbrush", "歯磨き": "toothpaste",
+    "ティッシュ": "tissues", "トイレットペーパー": "toilet paper",
+    "洗剤": "detergent", "ゴミ袋": "garbage bag",
+    "タオル": "towel", "マスク": "mask",
+    // Misc
+    "電池": "batteries", "バッテリー": "battery",
+    "雑誌": "magazine", "新聞": "newspaper", "本": "book",
+    "袋": "bag", "レジ袋": "plastic bag",
+    "煙草": "cigarettes", "たばこ": "cigarettes",
+    "薬": "medicine",
+    // Common suffixes / descriptors
+    "詰替": "refill", "詰め替え": "refill",
+    "大": "large", "小": "small", "中": "medium",
+    "セット": "set", "パック": "pack",
+    "個": "pcs", "本": "pcs", "枚": "pcs",
+    // Stores / chains
+    "ダイソー": "Daiso", "セブン": "7-Eleven", "ローソン": "Lawson",
+    "ファミマ": "FamilyMart", "ファミリーマート": "FamilyMart",
+    "無印": "Muji", "無印良品": "Muji",
+    "イオン": "Aeon", "セイコーマート": "Seicomart",
+  };
+
+  // Try dictionary lookup, with substring matching for compound items
+  function dictTranslate(text) {
+    if (DICT[text]) return DICT[text];
+    // Try to translate parts that match dict entries
+    let result = text;
+    let hit = false;
+    // Sort keys by length desc so longer phrases match before shorter
+    const keys = Object.keys(DICT).sort((a, b) => b.length - a.length);
+    for (const k of keys) {
+      if (result.includes(k)) {
+        result = result.split(k).join(DICT[k] + " ");
+        hit = true;
+      }
+    }
+    // Strip leftover CJK — if any remain and we had any hit, that's OK; else fail
+    const remainingCjk = (result.match(/[\u3040-\u30ff\u4e00-\u9fff]/g) || []).length;
+    if (hit && remainingCjk < text.length * 0.3) {
+      return result.replace(/\s+/g, " ").trim();
+    }
+    return null;
+  }
+
+  // ---- Native Chrome Translator API --------------------------------------
+  let nativeTranslator = null;   // cached translator instance
+  let nativePromise = null;      // in-flight creation promise
+  let consented = false;
+
+  async function supportsNative(srcLang, dstLang = "en") {
+    if (!("Translator" in self)) return false;
+    try {
+      const avail = await self.Translator.availability({
+        sourceLanguage: srcLang,
+        targetLanguage: dstLang,
+      });
+      return avail; // 'available' | 'downloadable' | 'downloading' | 'unavailable'
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function createNative(srcLang, dstLang = "en", onProgress) {
+    if (nativeTranslator) return nativeTranslator;
+    if (nativePromise) return nativePromise;
+    nativePromise = (async () => {
+      try {
+        const t = await self.Translator.create({
+          sourceLanguage: srcLang,
+          targetLanguage: dstLang,
+          monitor(m) {
+            m.addEventListener("downloadprogress", (e) => {
+              if (onProgress) onProgress(e.loaded);
+            });
+          },
+        });
+        nativeTranslator = t;
+        return t;
+      } catch (err) {
+        nativePromise = null;
+        throw err;
+      }
+    })();
+    return nativePromise;
+  }
+
+  // ---- Cache --------------------------------------------------------------
+  const cache = new Map(); // "src|text" -> translation
+
+  // ---- Public API ---------------------------------------------------------
+  const status = { engine: null, dictHits: 0, nativeHits: 0, downloaded: 0 };
+
+  async function isAvailable(srcLang, dstLang = "en") {
+    if (!srcLang || srcLang === dstLang) return false;
+    const nat = await supportsNative(srcLang, dstLang);
+    if (nat === "available") return "native-ready";
+    if (nat === "downloadable" || nat === "downloading") return "native-download";
+    // Fallback: do we have dict coverage?
+    if (srcLang === "ja") return "dict";
+    return false;
+  }
+
+  async function requestConsent(srcLang, onProgress) {
+    try {
+      await createNative(srcLang, "en", onProgress);
+      consented = true;
+      status.engine = "native";
+      return true;
+    } catch (e) {
+      console.warn("Translator API consent failed", e);
+      return false;
+    }
+  }
+
+  async function translate(text, srcLang) {
+    if (!text || !text.trim()) return { translated: "", engine: null };
+    const key = (srcLang || "auto") + "|" + text;
+    if (cache.has(key)) return cache.get(key);
+
+    let result = { translated: "", engine: null };
+
+    // Try native first (if consented + available)
+    if (nativeTranslator) {
+      try {
+        const out = await nativeTranslator.translate(text);
+        if (out && out.toLowerCase() !== text.toLowerCase()) {
+          result = { translated: out, engine: "native" };
+          status.nativeHits++;
+        }
+      } catch (e) {
+        // fall through to dict
+      }
+    }
+
+    // Fallback to dict
+    if (!result.translated && srcLang === "ja") {
+      const d = dictTranslate(text);
+      if (d && d.toLowerCase() !== text.toLowerCase()) {
+        result = { translated: d, engine: "dict" };
+        status.dictHits++;
+      }
+    }
+
+    cache.set(key, result);
+    return result;
+  }
+
+  window.translator = { isAvailable, requestConsent, translate, status, DICT };
+})();
+
+</script>
+
+<script type="text/babel" data-presets="react">
+
+// === components/shared.jsx ===
+// Shared helpers and primitives used across the app
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+// Format number with commas, configurable decimals
+function fmt(n, d = 0) {
+  if (n == null || isNaN(n)) return "—";
+  return Number(n).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+}
+function currSymbol(code) {
+  return ({
+    JPY: "¥", AUD: "A$", SGD: "S$", USD: "$", EUR: "€", GBP: "£"
+  })[code] || code + " ";
+}
+function decimalsFor(code) {
+  return code === "JPY" ? 0 : 2;
+}
+function formatMoney(amount, code) {
+  const d = decimalsFor(code);
+  return `${currSymbol(code)}${fmt(amount, d)}`;
+}
+
+// Given an expense paid in base currency (JPY), compute equivalent in payer's home via locked rate
+function convertViaLockedRate(jpyAmount, lockedRate) {
+  // lockedRate.rate = JPY per 1 unit of lockedRate.from
+  return jpyAmount / lockedRate.rate;
+}
+
+// Compute everyone's balance in the BASE currency (JPY)
+// Positive = they are owed money (paid > consumed)
+// Negative = they owe money
+function computeBalances(trip, members, expenses) {
+  const balances = {};
+  members.forEach(m => balances[m.id] = 0);
+  expenses.forEach(e => {
+    // Credit the payer with full amount
+    balances[e.payer] += e.amount;
+    // Debit each participant with their share
+    const share = e.amount / e.split.among.length;
+    e.split.among.forEach(pid => {
+      balances[pid] -= share;
+    });
+  });
+  return balances;
+}
+
+// Debt simplification — minimize transactions
+// Classic greedy approach: match largest creditor with largest debtor until all settled.
+// Returns list of { from, to, amount } in BASE currency
+function simplifyDebts(balances) {
+  const list = Object.entries(balances).map(([id, v]) => ({ id, v })).filter(x => Math.abs(x.v) > 0.5);
+  const creditors = list.filter(x => x.v > 0).sort((a,b) => b.v - a.v).map(x => ({...x}));
+  const debtors = list.filter(x => x.v < 0).sort((a,b) => a.v - b.v).map(x => ({...x, v: -x.v}));
+  const result = [];
+  while (creditors.length && debtors.length) {
+    const c = creditors[0], d = debtors[0];
+    const amt = Math.min(c.v, d.v);
+    result.push({ from: d.id, to: c.id, amount: amt });
+    c.v -= amt; d.v -= amt;
+    if (c.v < 0.5) creditors.shift();
+    if (d.v < 0.5) debtors.shift();
+  }
+  return result;
+}
+
+// Avatar component with home-currency "passport"
+function Avatar({ member, size = "md", showPassport = true }) {
+  const cls = size === "sm" ? "avatar sm" : size === "lg" ? "avatar lg" : "avatar";
+  return (
+    <div className={cls} style={{ background: member.color }}>
+      {member.initials}
+      {showPassport && <span className="passport">{member.homeFlag}</span>}
+    </div>
+  );
+}
+
+// Section rule (editorial divider)
+function Rule({ label }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "28px 0 14px" }}>
+      <div style={{ flex: 1, height: 1, background: "var(--rule-soft)" }} />
+      {label && <span className="mono" style={{ fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--ink-faint)" }}>{label}</span>}
+      <div style={{ flex: 1, height: 1, background: "var(--rule-soft)" }} />
+    </div>
+  );
+}
+
+// FX chip — shows locked rate with small padlock
+function FxChip({ lockedRate, baseCurrency }) {
+  if (!lockedRate) return null;
+  return (
+    <span className="fx-chip" title={`Locked rate: 1 ${lockedRate.from} = ${lockedRate.rate} ${baseCurrency}`}>
+      <svg className="lock" width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2">
+        <rect x="2" y="4.5" width="6" height="4.5" rx="0.5"/>
+        <path d="M3.5 4.5V3a1.5 1.5 0 013 0v1.5"/>
+      </svg>
+      <span className="rate">{lockedRate.rate}</span>
+      <span style={{ color: "var(--ink-faint)" }}>{baseCurrency}/{lockedRate.from}</span>
+    </span>
+  );
+}
+
+Object.assign(window, { fmt, currSymbol, decimalsFor, formatMoney, convertViaLockedRate, computeBalances, simplifyDebts, Avatar, Rule, FxChip });
+
+
+// === components/header.jsx ===
+// Masthead + tabs + members strip
+
+function Masthead({ trip }) {
+  return (
+    <header className="masthead">
+      <div className="issue">
+        <div>Vol. 01 · Issue 14</div>
+        <div style={{ marginTop: 4 }}>Ledger Edition</div>
+      </div>
+      <h1 className="title">
+        The Ski <span className="amp">&amp;</span> Settle
+      </h1>
+      <div className="meta">
+        <div>Shared Tab · {trip.location}</div>
+        <div style={{ marginTop: 4 }}>{trip.dates}</div>
+      </div>
+    </header>
+  );
+}
+
+function Tabs({ value, onChange, counts }) {
+  const tabs = [
+    { id: "expenses", label: "Expenses", count: counts.expenses },
+    { id: "settle", label: "Settlement", count: counts.settle },
+    { id: "people", label: "People", count: counts.people },
+    { id: "activity", label: "Activity" },
+  ];
+  return (
+    <nav className="tabs">
+      {tabs.map(t => (
+        <button
+          key={t.id}
+          className={"tab " + (value === t.id ? "active" : "")}
+          onClick={() => onChange(t.id)}
+        >
+          {t.label}
+          {t.count != null && <span className="count">{t.count}</span>}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+function MembersStrip({ members, activeId, onSelect, onAdd, onRemove }) {
+  const splitters = members.filter(m => m.splitsByDefault).length;
+  const sponsors  = members.length - splitters;
+  return (
+    <div className="members-strip">
+      <span className="mono" style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-faint)", marginRight: 6 }}>
+        Party of {members.length} · {splitters} splitting · {sponsors} sponsor{sponsors === 1 ? "" : "s"} ·
+      </span>
+      {members.map(m => {
+        const isSponsor = !m.splitsByDefault;
+        const isActive = activeId === m.id;
+        return (
+          <div
+            key={m.id}
+            className={"member-chip " + (isActive ? "active" : "")}
+            style={{ ...(isSponsor ? { borderStyle: "dashed" } : {}), position: "relative", paddingRight: 26 }}
+          >
+            <button
+              onClick={() => onSelect(m.id === activeId ? null : m.id)}
+              style={{ display: "flex", alignItems: "center", gap: 8, background: "transparent", border: "none", padding: 0, cursor: "pointer", color: "inherit", font: "inherit" }}
+              title={`Filter by ${m.name}`}
+            >
+              <Avatar member={m} />
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", lineHeight: 1.1 }}>
+                <span className="name">
+                  {m.name}
+                  {isSponsor && (
+                    <span style={{ marginLeft: 6, fontSize: 9, padding: "1px 5px", border: "1px solid currentColor", borderRadius: 2, verticalAlign: "middle", letterSpacing: "0.04em", textTransform: "uppercase", fontFamily: "var(--font-mono)" }}>
+                      sponsor
+                    </span>
+                  )}
+                </span>
+                <span className="home">{m.home}</span>
+              </div>
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onRemove(m); }}
+              title={`Remove ${m.name} from trip`}
+              aria-label={`Remove ${m.name}`}
+              style={{
+                position: "absolute", top: 4, right: 4,
+                width: 18, height: 18, padding: 0, borderRadius: "50%",
+                border: "none", background: "transparent",
+                fontSize: 14, lineHeight: "16px", color: "var(--ink-faint)",
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                fontFamily: "var(--font-mono)"
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--neg)"; e.currentTarget.style.color = "#fff"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--ink-faint)"; }}
+            >×</button>
+          </div>
+        );
+      })}
+      <button className="add-member-btn" onClick={onAdd}>+ Add member</button>
+    </div>
+  );
+}
+
+function HeroSummary({ trip, totalBase, perHead, myBalance, myMember, memberCount }) {
+  const isPos = myBalance >= 0;
+  return (
+    <section className="hero">
+      <div className="hero-cell primary">
+        <div className="hero-trip-name">{trip.name}</div>
+        <div className="hero-trip-meta">{trip.dates}</div>
+        <div className="hero-trip-meta" style={{ marginTop: 4 }}>{trip.location}</div>
+        <div style={{ marginTop: 14, display: "inline-flex", alignItems: "center", gap: 8, padding: "4px 10px", background: "var(--bg-soft)", borderRadius: 999, fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-soft)" }}>
+          <span>Base</span>
+          <span style={{ color: "var(--ink)" }}>{trip.baseCurrencyFlag} {trip.baseCurrency}</span>
+        </div>
+      </div>
+      <div className="hero-cell">
+        <div className="label">Trip total</div>
+        <div className="value">
+          <span className="curr">¥</span>{fmt(totalBase)}
+        </div>
+        <div className="foot">across {memberCount} travellers</div>
+      </div>
+      <div className="hero-cell">
+        <div className="label">Per head</div>
+        <div className="value">
+          <span className="curr">¥</span>{fmt(perHead)}
+        </div>
+        <div className="foot">if split evenly</div>
+      </div>
+      <div className="hero-cell">
+        <div className="label">{myMember.name}'s position</div>
+        <div className="value" style={{ color: isPos ? "var(--pos)" : "var(--neg)" }}>
+          <span className="curr">{isPos ? "+" : "−"}¥</span>{fmt(Math.abs(myBalance))}
+        </div>
+        <div className="foot">
+          {isPos ? "Owed to you · " : "You owe · "}
+          ≈ {formatMoney(Math.abs(myBalance) / 98.4, "AUD")}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+Object.assign(window, { Masthead, Tabs, MembersStrip, HeroSummary });
+
+
+// === components/expenses.jsx ===
+// Expense list, row, and detail drawer
+
+function ExpenseRow({ expense, members, onClick, baseCurrency }) {
+  const payer = members.find(m => m.id === expense.payer);
+  const participants = expense.split.among.map(id => members.find(m => m.id === id));
+  const [m, d] = expense.date.split(" ");
+  return (
+    <div className="expense-row" onClick={onClick}>
+      <div className="expense-date">
+        <span className="day">{d}</span>
+        {m}
+      </div>
+      <div className="expense-main">
+        <div className="title">{expense.title}</div>
+        <div className="expense-meta">
+          <span className="expense-cat">{expense.category}</span>
+          <span className="dot">·</span>
+          <span>Split {participants.length} ways</span>
+          <span className="dot">·</span>
+          <FxChip lockedRate={expense.lockedRate} baseCurrency={baseCurrency} />
+          {expense.receipt && (
+            <>
+              <span className="dot">·</span>
+              <span className="mono" style={{ fontSize: 10, color: "var(--ink-faint)", letterSpacing: "0.06em" }}>
+                ◉ Receipt
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+      <div className="expense-payer">
+        <Avatar member={payer} size="sm" />
+        <span className="name">{payer.name}</span>
+      </div>
+      <div className="expense-amount">
+        <div className="primary">
+          <span className="sym">{currSymbol(expense.currency)}</span>{fmt(expense.amount, decimalsFor(expense.currency))}
+        </div>
+        <div className="secondary">
+          ≈ {formatMoney(expense.payerEquivalent.amount, expense.payerEquivalent.currency)} paid
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ExpenseList({ expenses, members, onOpen, filters, baseCurrency }) {
+  const filtered = expenses.filter(e => {
+    if (filters.category !== "all" && e.category !== filters.category) return false;
+    if (filters.member && !e.split.among.includes(filters.member) && e.payer !== filters.member) return false;
+    return true;
+  });
+  const total = filtered.reduce((s, e) => s + e.amount, 0);
+
+  return (
+    <div className="card">
+      <div className="card-head">
+        <h3>Ledger</h3>
+        <span className="sub">{filtered.length} entries · ¥{fmt(total)} total</span>
+      </div>
+      <div className="expense-list">
+        {filtered.map(e => (
+          <ExpenseRow
+            key={e.id}
+            expense={e}
+            members={members}
+            baseCurrency={baseCurrency}
+            onClick={() => onOpen(e)}
+          />
+        ))}
+        {filtered.length === 0 && (
+          <div style={{ padding: "40px 20px", textAlign: "center", color: "var(--ink-faint)", fontFamily: "var(--font-display)", fontSize: 18, fontStyle: "italic" }}>
+            No entries match this view.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ExpenseDetail({ expense, members, onClose, baseCurrency }) {
+  if (!expense) return null;
+  const payer = members.find(m => m.id === expense.payer);
+  const share = expense.amount / expense.split.among.length;
+  const shareInPayerCurr = share / expense.lockedRate.rate;
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-head">
+          <div>
+            <div className="mono" style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 4 }}>
+              {expense.date} · {expense.category}
+            </div>
+            <h2>{expense.title}</h2>
+          </div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          {/* Amount block */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, paddingBottom: 20, borderBottom: "1px solid var(--rule-soft)" }}>
+            <div>
+              <div className="mono" style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-soft)", marginBottom: 6 }}>Charged amount</div>
+              <div className="font-display" style={{ fontSize: 36, letterSpacing: "-0.02em" }}>
+                <span className="mono" style={{ fontSize: 14, color: "var(--ink-soft)", marginRight: 4 }}>¥</span>
+                {fmt(expense.amount)}
+              </div>
+              <div style={{ fontSize: 12, color: "var(--ink-faint)", marginTop: 4 }}>Paid in Japan · {baseCurrency}</div>
+            </div>
+            <div>
+              <div className="mono" style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-soft)", marginBottom: 6 }}>{payer.name} actually paid</div>
+              <div className="font-display" style={{ fontSize: 36, letterSpacing: "-0.02em", color: "var(--accent)" }}>
+                {formatMoney(expense.payerEquivalent.amount, expense.payerEquivalent.currency)}
+              </div>
+              <div style={{ fontSize: 12, color: "var(--ink-faint)", marginTop: 4 }}>via {expense.lockedRate.note}</div>
+            </div>
+          </div>
+
+          {/* FX lock detail */}
+          <div className="fx-lock-widget" style={{ marginTop: 20 }}>
+            <div className="hd">
+              <span>Locked exchange rate</span>
+              <span className="lock-icon">
+                <svg width="11" height="11" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2">
+                  <rect x="2" y="4.5" width="6" height="4.5" rx="0.5"/>
+                  <path d="M3.5 4.5V3a1.5 1.5 0 013 0v1.5"/>
+                </svg>
+                LOCKED
+              </span>
+            </div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 14, fontFamily: "var(--font-display)", fontSize: 22, letterSpacing: "-0.01em" }}>
+              <span className="mono" style={{ fontSize: 12, color: "var(--ink-soft)" }}>1 {expense.lockedRate.from}</span>
+              <span style={{ color: "var(--ink-faint)" }}>=</span>
+              <span>{expense.lockedRate.rate} {baseCurrency}</span>
+            </div>
+            <div className="fx-lock-note">
+              Rate from {expense.lockedRate.note} at time of payment. Market today: 98.40 JPY/AUD, 114.20 JPY/SGD.
+            </div>
+          </div>
+
+          {/* Split breakdown */}
+          <div style={{ marginTop: 22 }}>
+            <div className="mono" style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-soft)", marginBottom: 12 }}>
+              Split equally among {expense.split.among.length}
+            </div>
+            <div style={{ border: "1px solid var(--rule-soft)" }}>
+              {expense.split.among.map((pid, idx, arr) => {
+                const p = members.find(x => x.id === pid);
+                const inHome = share / (p.home === "AUD" ? 98.4 : p.home === "SGD" ? 114.2 : 1);
+                const isLast = idx === arr.length - 1;
+                return (
+                  <div key={pid} style={{ display: "grid", gridTemplateColumns: "auto 1fr auto auto", gap: 14, padding: "10px 14px", borderBottom: isLast ? "none" : "1px solid var(--rule-soft)", alignItems: "center" }}>
+                    <Avatar member={p} size="sm" />
+                    <div>
+                      <div style={{ fontFamily: "var(--font-display)", fontSize: 15 }}>{p.name}</div>
+                      <div className="mono" style={{ fontSize: 10, color: "var(--ink-faint)", letterSpacing: "0.06em" }}>Home: {p.home}</div>
+                    </div>
+                    <div className="mono" style={{ fontSize: 12, color: "var(--ink-soft)", textAlign: "right" }}>
+                      ≈ {formatMoney(inHome, p.home)}
+                    </div>
+                    <div style={{ fontFamily: "var(--font-display)", fontSize: 17, textAlign: "right", minWidth: 90 }}>
+                      <span className="mono" style={{ fontSize: 11, color: "var(--ink-soft)" }}>¥</span>{fmt(share)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        <div className="modal-foot">
+          <button className="btn ghost" onClick={onClose}>Close</button>
+          <div className="btn-row">
+            <button className="btn ghost">Edit</button>
+            <button className="btn">Duplicate</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { ExpenseList, ExpenseRow, ExpenseDetail });
+
+
+// === components/addExpense.jsx ===
+// Add Expense modal — with receipt scan, FX lock, split picker
+
+function AddExpense({ members, trip, onClose, onSave }) {
+  const [step, setStep] = useState(0); // 0=entry, 1=scanning
+  const [mode, setMode] = useState("manual"); // "manual" | "receipt"
+  const [title, setTitle] = useState("");
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("Food");
+  const [payer, setPayer] = useState(members[0].id);
+  const [homeAmount, setHomeAmount] = useState("");  // what the bank charged the payer, in their home currency
+  const [lockFrom, setLockFrom] = useState(members[0].home);
+  const [lockNote, setLockNote] = useState("");
+  // Default split: everyone flagged splitsByDefault. Per-expense overrides win over role.
+  const defaultSplit = new Set(members.filter(m => m.splitsByDefault).map(m => m.id));
+  const [participants, setParticipants] = useState(defaultSplit);
+  const [scanStatus, setScanStatus] = useState(""); // informational during scan
+  const [scanProgress, setScanProgress] = useState(0);
+  const [scanPhotoUrl, setScanPhotoUrl] = useState(null);
+  const [scanRawText, setScanRawText] = useState("");
+  const [scanCandidates, setScanCandidates] = useState(null); // {totals:[], merchant, date}
+  // Line items for itemised splitting. Each: {id, desc, price, assignees: Set<memberId>}
+  const [items, setItems] = useState([]);
+  // Translation: map of original text -> {translated, engine}. Null engine means not yet translated.
+  const [translations, setTranslations] = useState({});
+  // Translation consent state: 'unknown' | 'declined' | 'downloading' | 'ready' | 'unavailable' | 'dict-only'
+  const [translatorState, setTranslatorState] = useState("unknown");
+  const [translatorProgress, setTranslatorProgress] = useState(0);
+  const [showRawLines, setShowRawLines] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const payerMember = members.find(m => m.id === payer);
+  // Update lockFrom default when payer changes
+  useEffect(() => {
+    setLockFrom(payerMember.home);
+  }, [payer]);
+
+  // Derive the locked rate from the two amounts: rate = JPY / home
+  const marketRate = lockFrom === "AUD" ? 98.4 : lockFrom === "SGD" ? 114.2 : 1;
+  const lockedRate = (Number(amount) && Number(homeAmount)) ? Number(amount) / Number(homeAmount) : null;
+  const delta = lockedRate ? ((lockedRate - marketRate) / marketRate) * 100 : 0;
+
+  // Translate a batch of strings using window.translator (native → dict fallback).
+  // Runs asynchronously; updates `translations` state as each resolves.
+  const translateAll = useCallback(async (strings, srcLang) => {
+    if (!srcLang || srcLang === "en" || !window.translator) return;
+    for (const text of strings) {
+      if (!text || translations[text]) continue;
+      const { translated, engine } = await window.translator.translate(text, srcLang);
+      if (translated) {
+        setTranslations(prev => ({ ...prev, [text]: { translated, engine } }));
+      }
+    }
+  }, [translations]);
+
+  // When items change AND we have a detected source language, translate them.
+  useEffect(() => {
+    const src = scanCandidates?.sourceLang;
+    if (!src || src === "en") return;
+    const itemStrings = items.map(it => it.desc).filter(Boolean);
+    const rawStrings = (scanCandidates?.rawLines || []).map(l => l.text).filter(Boolean);
+    const strings = [...new Set([...itemStrings, ...rawStrings])];
+    if (strings.length === 0) return;
+    // Only translate if user has opted in to native, OR dict is available (JP)
+    if (translatorState === "ready" || src === "ja") {
+      translateAll(strings, src);
+    }
+  }, [items, scanCandidates, translatorState, translateAll]);
+
+  // Probe translator availability when OCR finishes with non-English text
+  useEffect(() => {
+    const src = scanCandidates?.sourceLang;
+    if (!src || src === "en" || !window.translator) return;
+    if (translatorState !== "unknown") return;
+    (async () => {
+      const avail = await window.translator.isAvailable(src, "en");
+      if (avail === "native-ready") {
+        await window.translator.requestConsent(src);
+        setTranslatorState("ready");
+      } else if (avail === "native-download") {
+        setTranslatorState("downloadable");
+      } else if (avail === "dict") {
+        setTranslatorState("dict-only");
+      } else {
+        setTranslatorState("unavailable");
+      }
+    })();
+  }, [scanCandidates, translatorState]);
+
+  function enableTranslator() {
+    const src = scanCandidates?.sourceLang || "ja";
+    setTranslatorState("downloading");
+    setTranslatorProgress(0);
+    window.translator.requestConsent(src, (bytes) => {
+      // Language packs are ~30MB; show a rough 0–100 based on observed bytes (cap at 30MB)
+      setTranslatorProgress(Math.min(100, Math.round((bytes / (30 * 1024 * 1024)) * 100)));
+    }).then(ok => {
+      setTranslatorState(ok ? "ready" : "unavailable");
+    });
+  }
+
+  function toggleParticipant(id) {    const next = new Set(participants);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    setParticipants(next);
+  }
+
+  function handleReceiptDrop() {
+    if (fileInputRef.current) fileInputRef.current.click();
+  }
+
+  // Parse OCR text for receipt-ish fields. All regex, no AI.
+  function parseReceiptText(text) {
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
+    // ============================================================
+    // OCR NUMBER FIX-UP — common misreads in price columns
+    // ============================================================
+    const fixNumber = (s) => s
+      .replace(/[Oo]/g, '0')      // letter O → zero
+      .replace(/[lI|]/g, '1')     // l / I / | → one
+      .replace(/[Bß]/g, '8')      // B / ß → eight
+      .replace(/[Zz](?=\d|$)/g, '2'); // trailing Z → two
+
+    // Match money-ish tokens (more permissive than before, allow OCR-fuzzed digits)
+    const moneyRx = /([¥￥$€£₹]?\s*)([\dOolI|B]{1,3}(?:[,.\s][\dOolI|B]{3})+|[\dOolI|B]{2,})(?:[.,](\d{1,2}))?/g;
+    const totalKeywordRx = /(^|\b)(total|grand\s*total|amount\s*due|balance|合計|小計|総計|お会計|会計|計)(\b|$)/i;
+    const skipLineRx = /(tax|vat|gst|tip|service\s*charge|change\s*due|cash|visa|master|amex|jcb|discover|signature|消費税|サービス料|お釣り|釣銭|お預り|お預かり|電話|tel|phone|〒|領収|ありがとう|お買上|点数|いらっしゃ|レジ|registr)/i;
+    const dropIfOnly = /^[\W_\d]+$/; // punctuation / numbers only
+
+    // ============================================================
+    // PASS 1 — TOTAL CANDIDATES (priority: total-keyword > near-bottom > elsewhere)
+    // ============================================================
+    const totals = [];
+    lines.forEach((line, idx) => {
+      const isTotalLine = totalKeywordRx.test(line);
+      const isSkippable = skipLineRx.test(line);
+      const rx = new RegExp(moneyRx.source, 'g');
+      let m;
+      while ((m = rx.exec(line))) {
+        const raw = fixNumber(m[2]).replace(/[,.\s]/g, '');
+        let n = parseInt(raw, 10);
+        if (m[3]) n = parseFloat(n + '.' + m[3]);
+        if (!Number.isFinite(n) || n < 100 || n >= 10_000_000) continue;
+        const priority = isTotalLine ? 3 : (isSkippable ? -1 : (idx > lines.length - 6 ? 1 : 0));
+        totals.push({ value: n, line, priority });
+      }
+    });
+    // Dedup by value, keep highest priority per value
+    const dedupMap = new Map();
+    for (const t of totals) {
+      const prev = dedupMap.get(t.value);
+      if (!prev || t.priority > prev.priority) dedupMap.set(t.value, t);
+    }
+    const dedupTotals = [...dedupMap.values()].sort((a, b) => (b.priority - a.priority) || (b.value - a.value));
+
+    // ============================================================
+    // PASS 2 — LINE ITEMS — aggressive parser
+    // Strategy: walk lines, find "<description><separator><price>" OR carry
+    // a description forward if the next line is a standalone price.
+    // ============================================================
+    const items = [];
+    const rawLinesAnnotated = []; // every original line + whether auto-captured
+
+    const standalonePriceRx = /^[¥￥$€£]?\s*([\dOolI|B]{1,3}(?:[,.\s][\dOolI|B]{3})+|[\dOolI|B]{2,})(?:[.,](\d{1,2}))?\s*[円]?\s*\*?$/;
+    const trailingPriceRx = /^(.{2,50}?)[\s.·:—–\-]+[¥￥$€£]?\s*([\dOolI|B]{1,3}(?:[,.\s][\dOolI|B]{3})+|[\dOolI|B]{2,})(?:[.,](\d{1,2}))?\s*[円]?\s*\*?$/;
+
+    let pendingDesc = null; // description waiting for a price on a subsequent line
+
+    lines.forEach((line, idx) => {
+      const annotated = { idx, text: line, captured: false };
+
+      // Skip junk
+      if (dropIfOnly.test(line) || skipLineRx.test(line) || totalKeywordRx.test(line)) {
+        rawLinesAnnotated.push(annotated);
+        pendingDesc = null;
+        return;
+      }
+
+      // Case A: standalone price that might close a pendingDesc
+      const standalone = line.match(standalonePriceRx);
+      if (standalone && pendingDesc) {
+        const raw = fixNumber(standalone[1]).replace(/[,.\s]/g, '');
+        let price = parseInt(raw, 10);
+        if (standalone[2]) price = parseFloat(price + '.' + standalone[2]);
+        if (Number.isFinite(price) && price >= 10 && price < 2_000_000) {
+          items.push({ desc: pendingDesc, price });
+          annotated.captured = true;
+          pendingDesc = null;
+          rawLinesAnnotated.push(annotated);
+          return;
+        }
+      }
+
+      // Case B: full "description + price" on one line
+      const trailing = line.match(trailingPriceRx);
+      if (trailing) {
+        const desc = trailing[1].replace(/[*#=\-•·]+\s*$/, '').trim();
+        const raw = fixNumber(trailing[2]).replace(/[,.\s]/g, '');
+        let price = parseInt(raw, 10);
+        if (trailing[3]) price = parseFloat(price + '.' + trailing[3]);
+        const validDesc = desc && desc.length >= 2 && desc.length <= 50 && !/^\d+$/.test(desc) && !totalKeywordRx.test(desc) && !skipLineRx.test(desc);
+        if (validDesc && Number.isFinite(price) && price >= 10 && price < 2_000_000) {
+          items.push({ desc, price });
+          annotated.captured = true;
+          pendingDesc = null;
+          rawLinesAnnotated.push(annotated);
+          return;
+        }
+      }
+
+      // Case C: description-only line (no price) — queue for next line
+      if (!/\d/.test(line) && line.length >= 2 && line.length <= 50) {
+        pendingDesc = line;
+      } else {
+        pendingDesc = null;
+      }
+      rawLinesAnnotated.push(annotated);
+    });
+
+    // Dedup items (same desc+price appearing twice)
+    const seen = new Set();
+    const dedupedItems = [];
+    for (const it of items) {
+      const key = it.desc.toLowerCase() + "|" + it.price;
+      if (seen.has(key)) {
+        // Merge: bump the existing one's quantity in its description
+        const existing = dedupedItems.find(d => d.desc.toLowerCase() === it.desc.toLowerCase() && d.price === it.price);
+        if (existing) existing.qty = (existing.qty || 1) + 1;
+      } else {
+        seen.add(key);
+        dedupedItems.push({ ...it });
+      }
+    }
+
+    // Flag suspicious items (price > 50% of total) — likely a subtotal caught as an item
+    const likelyTotal = dedupTotals[0]?.value;
+    if (likelyTotal) {
+      dedupedItems.forEach(it => {
+        if (it.price > likelyTotal * 0.7) it.suspicious = true;
+      });
+    }
+
+    // ============================================================
+    // MERCHANT / DATE / CATEGORY (unchanged logic, cleaner filter)
+    // ============================================================
+    const merchant = (lines.slice(0, 5).find(l =>
+      l.length > 3 && l.length < 42 && !/^\d|^\W+$|receipt|tel|phone|〒/i.test(l)
+    ) || lines[0] || "").replace(/[*#=\-]+/g, '').trim();
+
+    const monthShort = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    let date = "";
+    const dateRx1 = /(\d{4})[-./年](\d{1,2})[-./月](\d{1,2})/;
+    const dateRx2 = /(\d{1,2})[-./](\d{1,2})[-./](\d{2,4})/;
+    for (const line of lines) {
+      let m = line.match(dateRx1);
+      if (m) { date = `${monthShort[+m[2]-1]} ${+m[3]}`; break; }
+      m = line.match(dateRx2);
+      if (m) { date = `${monthShort[+m[2]-1]} ${+m[1]}`; break; }
+    }
+
+    const merchantLower = merchant.toLowerCase();
+    let category = "Food";
+    if (/hotel|inn|airbnb|lodge|ryokan|旅館|ホテル/i.test(merchant)) category = "Lodging";
+    else if (/taxi|cab|uber|rail|jr|bus|metro|タクシー|バス/i.test(merchant)) category = "Transport";
+    else if (/ski|rental|lift|lesson|onsen|spa|温泉|スキー/i.test(merchant)) category = "Activity";
+    else if (/mart|store|shop|market|daiso|muji|lawson|family|seven|セブン|ローソン|ファミマ|ダイソー|無印/i.test(merchant)) category = "Shopping";
+
+    // Detect dominant source language from text (for translation)
+    let sourceLang = "en";
+    const jpChars = (text.match(/[\u3040-\u30ff\u4e00-\u9fff]/g) || []).length;
+    const cjkTotal = (text.match(/[\u4e00-\u9fff]/g) || []).length;
+    if (jpChars > 10) sourceLang = "ja";
+    else if (cjkTotal > 10) sourceLang = "zh";
+
+    return {
+      totals: dedupTotals,
+      merchant,
+      date,
+      category,
+      items: dedupedItems,
+      rawLines: rawLinesAnnotated,
+      sourceLang,
+    };
+  }
+
+  function loadTesseract() {
+    if (window.Tesseract) return Promise.resolve(window.Tesseract);
+    return new Promise((res, rej) => {
+      const s = document.createElement("script");
+      s.src = "https://unpkg.com/tesseract.js@5.1.1/dist/tesseract.min.js";
+      s.onload = () => res(window.Tesseract);
+      s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  async function handleFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setStep(1);
+    setScanProgress(0);
+    setScanCandidates(null);
+    setScanRawText("");
+    setScanStatus("Loading OCR engine (~2MB, first run only)…");
+
+    // Show the photo preview
+    const photoUrl = URL.createObjectURL(file);
+    setScanPhotoUrl(photoUrl);
+
+    try {
+      const Tesseract = await loadTesseract();
+      setScanStatus("Recognising text…");
+      const result = await Tesseract.recognize(file, "eng+jpn", {
+        logger: (m) => {
+          if (m.status === "recognizing text") {
+            setScanProgress(Math.round(m.progress * 100));
+          } else if (m.status) {
+            setScanStatus(m.status.charAt(0).toUpperCase() + m.status.slice(1) + "…");
+          }
+        },
+      });
+      const text = result?.data?.text || "";
+      setScanRawText(text);
+      const parsed = parseReceiptText(text);
+      setScanCandidates(parsed);
+      setScanStatus("✓ Read — confirm below");
+
+      // Auto-fill with best guesses
+      if (parsed.totals[0]) setAmount(String(parsed.totals[0].value));
+      if (parsed.merchant) setTitle(parsed.merchant);
+      setCategory(parsed.category);
+
+      // Hydrate line items — default everyone in `defaultSplit` is ticked
+      if (parsed.items && parsed.items.length >= 3) {
+        const initialItems = parsed.items.map((it, i) => ({
+          id: "it" + i,
+          desc: it.desc,
+          price: it.price,
+          assignees: new Set(defaultSplit),
+        }));
+        setItems(initialItems);
+      } else {
+        setItems([]);
+      }
+    } catch (err) {
+      console.warn("OCR failed", err);
+      setScanStatus("Couldn't read automatically — type the total below");
+    }
+  }
+
+  function toggleItemAssignee(itemId, memberId) {
+    setItems(items.map(it => {
+      if (it.id !== itemId) return it;
+      const next = new Set(it.assignees);
+      if (next.has(memberId)) next.delete(memberId); else next.add(memberId);
+      return { ...it, assignees: next };
+    }));
+  }
+
+  function updateItem(itemId, field, value) {
+    setItems(items.map(it => it.id === itemId ? { ...it, [field]: value } : it));
+  }
+
+  function addItem() {
+    setItems([...items, { id: "it" + Date.now(), desc: "", price: 0, assignees: new Set(defaultSplit) }]);
+  }
+
+  function removeItem(itemId) {
+    setItems(items.filter(it => it.id !== itemId));
+  }
+
+  // Itemised sum (for reconciliation warning)
+  const itemsSum = items.reduce((s, it) => s + (Number(it.price) || 0), 0);
+  const reconcileDelta = Number(amount) - itemsSum; // positive = tax/service not accounted for
+  const hasItems = items.length > 0;
+
+  function handleSave() {
+    // If user didn't provide a home amount, fall back to today's market rate
+    const rate = lockedRate || marketRate;
+    const totalPayerEq = Number(homeAmount) || (Number(amount) / rate);
+    const lockedRateObj = { from: lockFrom, rate: Number(rate.toFixed(2)), note: lockNote || (lockedRate ? `${payerMember.name}'s card` : "market rate") };
+
+    // No itemisation → single expense, simple path
+    if (!hasItems) {
+      onSave({
+        id: "new-" + Date.now(),
+        date: "Feb 20",
+        title: title || "Untitled expense",
+        category,
+        amount: Number(amount) || 0,
+        currency: "JPY",
+        payer,
+        lockedRate: lockedRateObj,
+        payerEquivalent: { currency: lockFrom, amount: totalPayerEq },
+        split: { type: "equal", among: Array.from(participants) },
+        receipt: mode === "receipt",
+      });
+      onClose();
+      return;
+    }
+
+    // Itemised path — group items by who they're assigned to, proportionally redistribute non-item overhead
+    // (tax/service/rounding) from Number(amount) - itemsSum across each item.
+    const overhead = Number(amount) - itemsSum;
+    const overheadFactor = itemsSum > 0 ? (1 + overhead / itemsSum) : 1;
+
+    const groups = new Map(); // key = sorted assignee ids joined → {items: [], total}
+    items.forEach(it => {
+      const price = Number(it.price) || 0;
+      if (price <= 0 || it.assignees.size === 0) return;
+      const key = Array.from(it.assignees).sort().join(",");
+      if (!groups.has(key)) groups.set(key, { assignees: Array.from(it.assignees), items: [], total: 0 });
+      const g = groups.get(key);
+      g.items.push(it);
+      g.total += price * overheadFactor;
+    });
+
+    // Emit one parent expense per group. The rate lock stays consistent across all of them.
+    const now = Date.now();
+    let i = 0;
+    for (const g of groups.values()) {
+      const itemLabels = g.items.map(it => it.desc).slice(0, 3).join(", ") + (g.items.length > 3 ? ` +${g.items.length - 3}` : "");
+      const subTotal = Math.round(g.total);
+      const parentTitle = title || "Receipt";
+      const groupTitle = g.assignees.length === participants.size
+        ? `${parentTitle} — shared (${g.items.length} item${g.items.length === 1 ? "" : "s"})`
+        : `${parentTitle} — ${itemLabels}`;
+      onSave({
+        id: "new-" + now + "-" + i,
+        date: "Feb 20",
+        title: groupTitle,
+        category,
+        amount: subTotal,
+        currency: "JPY",
+        payer,
+        lockedRate: lockedRateObj,
+        payerEquivalent: { currency: lockFrom, amount: subTotal / rate },
+        split: { type: "equal", among: g.assignees },
+        receipt: mode === "receipt",
+      });
+      i++;
+    }
+    onClose();
+  }
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-head">
+          <div>
+            <div className="mono" style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 4 }}>
+              New entry · {trip.name}
+            </div>
+            <h2>Add an expense</h2>
+          </div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          {/* Mode toggle */}
+          <div style={{ display: "flex", gap: 0, marginBottom: 22, border: "1px solid var(--rule-soft)" }}>
+            <button
+              className="tweak-opt"
+              style={{ flex: 1, padding: 12, fontSize: 11, background: mode === "receipt" ? "var(--ink)" : "transparent", color: mode === "receipt" ? "var(--paper)" : "var(--ink)", border: "none", borderRight: "1px solid var(--rule-soft)" }}
+              onClick={() => setMode("receipt")}
+            >
+              ◉ Scan receipt
+            </button>
+            <button
+              className="tweak-opt"
+              style={{ flex: 1, padding: 12, fontSize: 11, background: mode === "manual" ? "var(--ink)" : "transparent", color: mode === "manual" ? "var(--paper)" : "var(--ink)", border: "none" }}
+              onClick={() => setMode("manual")}
+            >
+              ⌨ Enter manually
+            </button>
+          </div>
+
+          {mode === "receipt" && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleFile}
+                style={{ display: "none" }}
+              />
+              {!scanPhotoUrl && (
+                <div className="receipt-drop" onClick={handleReceiptDrop}>
+                  <div className="icon">◐</div>
+                  <div className="hint">
+                    <strong>Drop a photo or tap to upload</strong><br/>
+                    <span style={{ fontSize: 11, color: "var(--ink-faint)", fontFamily: "var(--font-mono)", letterSpacing: "0.04em" }}>
+                      on-device OCR · Tesseract.js · no API, no cost
+                    </span>
+                  </div>
+                </div>
+              )}
+              {scanPhotoUrl && (
+                <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 14, marginBottom: 18, padding: 12, border: "1px solid var(--rule-soft)", background: "var(--bg-soft)" }}>
+                  <div style={{ position: "relative", width: 120, height: 160, overflow: "hidden", background: "#000" }}>
+                    <img src={scanPhotoUrl} alt="receipt" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: step === 1 ? 0.5 : 1 }} />
+                    {step === 1 && scanProgress > 0 && scanProgress < 100 && (
+                      <div style={{ position: "absolute", left: 0, right: 0, top: `${scanProgress}%`, height: 2, background: "var(--accent)", boxShadow: "0 0 8px var(--accent)" }} />
+                    )}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div className="mono" style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 4 }}>
+                      Receipt · {step === 1 ? `${scanProgress}%` : "done"}
+                    </div>
+                    <div className="font-display" style={{ fontSize: 15, lineHeight: 1.2, marginBottom: 8 }}>
+                      {scanStatus || "Ready"}
+                    </div>
+                    {step === 1 && (
+                      <div style={{ height: 3, background: "var(--rule-soft)", marginBottom: 10 }}>
+                        <div style={{ height: "100%", width: `${scanProgress}%`, background: "var(--accent)", transition: "width 0.2s" }} />
+                      </div>
+                    )}
+                    {scanCandidates && scanCandidates.totals.length > 1 && (
+                      <div>
+                        <div className="mono" style={{ fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 4 }}>
+                          Possible totals — tap to use
+                        </div>
+                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                          {scanCandidates.totals.slice(0, 5).map((t, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => setAmount(String(t.value))}
+                              style={{
+                                padding: "4px 9px",
+                                border: "1px solid var(--rule-soft)",
+                                background: Number(amount) === t.value ? "var(--ink)" : "var(--paper)",
+                                color: Number(amount) === t.value ? "var(--paper)" : "var(--ink)",
+                                fontFamily: "var(--font-mono)",
+                                fontSize: 11,
+                                cursor: "pointer"
+                              }}
+                            >
+                              ¥{fmt(t.value)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {scanCandidates && scanCandidates.items && scanCandidates.items.length >= 2 && !hasItems && (
+                      <div className="mono" style={{ fontSize: 10, color: "var(--pos)", marginTop: 8, letterSpacing: "0.04em" }}>
+                        ✦ {scanCandidates.items.length} line items found · scroll down to split per-item
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => { setScanPhotoUrl(null); setScanCandidates(null); setScanStatus(""); setScanProgress(0); }}
+                      style={{ marginTop: 10, background: "none", border: "none", color: "var(--ink-faint)", fontSize: 11, cursor: "pointer", textDecoration: "underline", padding: 0 }}
+                    >
+                      Replace photo
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="field">
+            <label className="field-label">Description</label>
+            <input className="field-input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Dinner at Kamimura…" />
+          </div>
+
+          <div className="field-row">
+            <div className="field">
+              <label className="field-label">Amount · charged in JPY</label>
+              <div className="amount-input">
+                <span className="curr">¥</span>
+                <input type="text" value={amount} onChange={e => setAmount(e.target.value.replace(/[^\d.]/g, ""))} placeholder="0" />
+              </div>
+            </div>
+            <div className="field">
+              <label className="field-label">Category</label>
+              <select className="field-select" value={category} onChange={e => setCategory(e.target.value)}>
+                <option>Food</option>
+                <option>Activity</option>
+                <option>Transport</option>
+                <option>Lodging</option>
+                <option>Shopping</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="field">
+            <label className="field-label">Paid by</label>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {members.map(m => (
+                <button
+                  key={m.id}
+                  type="button"
+                  className={"split-pill " + (payer === m.id ? "on" : "")}
+                  style={{ opacity: 1, borderColor: payer === m.id ? "var(--accent)" : "var(--rule-soft)" }}
+                  onClick={() => setPayer(m.id)}
+                >
+                  <Avatar member={m} size="sm" />
+                  <span>{m.name}</span>
+                  <span className="share">{m.home}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* FX LOCK — based on what hit the payer's bank, not a rate */}
+          <div className="fx-lock-widget">
+            <div className="hd">
+              <span>What {payerMember.name}'s bank actually charged</span>
+              <span className="lock-icon">
+                <svg width="11" height="11" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2">
+                  <rect x="2" y="4.5" width="6" height="4.5" rx="0.5"/>
+                  <path d="M3.5 4.5V3a1.5 1.5 0 013 0v1.5"/>
+                </svg>
+                LOCKED
+              </span>
+            </div>
+            <div style={{ fontSize: 11, color: "var(--ink-faint)", marginBottom: 10, fontFamily: "var(--font-mono)", letterSpacing: "0.04em", lineHeight: 1.4 }}>
+              Check {payerMember.name}'s banking app and type the amount that hit the account — we'll lock the rate from there.
+            </div>
+            <div className="fx-lock-row">
+              <div>
+                <label className="field-label">Their card's currency</label>
+                <select className="field-select" value={lockFrom} onChange={e => setLockFrom(e.target.value)}>
+                  <option value="AUD">🇦🇺 AUD</option>
+                  <option value="SGD">🇸🇬 SGD</option>
+                  <option value="USD">🇺🇸 USD</option>
+                  <option value="EUR">🇪🇺 EUR</option>
+                  <option value="GBP">🇬🇧 GBP</option>
+                  <option value="NZD">🇳🇿 NZD</option>
+                </select>
+              </div>
+              <div className="fx-eq">=</div>
+              <div>
+                <label className="field-label">Amount in {lockFrom} · as per bank statement</label>
+                <div className="amount-input">
+                  <span className="curr">{lockFrom === "AUD" ? "A$" : lockFrom === "SGD" ? "S$" : lockFrom === "USD" ? "$" : lockFrom === "EUR" ? "€" : lockFrom === "GBP" ? "£" : lockFrom === "NZD" ? "NZ$" : ""}</span>
+                  <input
+                    type="text"
+                    value={homeAmount}
+                    onChange={e => setHomeAmount(e.target.value.replace(/[^\d.]/g, ""))}
+                    placeholder="858.90"
+                    style={{ fontFamily: "var(--font-mono)" }}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="fx-lock-note">
+              <span>Note: </span>
+              <input
+                style={{ border: "none", background: "transparent", fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--ink)", outline: "none", width: 180 }}
+                placeholder="e.g. CBA debit, Wise card…"
+                value={lockNote}
+                onChange={e => setLockNote(e.target.value)}
+              />
+            </div>
+            {amount && homeAmount && lockedRate && (
+              <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid var(--rule-soft)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                  <div className="mono" style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-soft)" }}>
+                    Locked rate
+                  </div>
+                  <div>
+                    <span className="font-display" style={{ fontSize: 22, color: "var(--accent)" }}>
+                      {lockedRate.toFixed(2)}
+                    </span>
+                    <span className="mono" style={{ fontSize: 10, color: "var(--ink-faint)", marginLeft: 6 }}>
+                      JPY per {lockFrom}
+                    </span>
+                  </div>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                  <div className="mono" style={{ fontSize: 10, letterSpacing: "0.06em", color: "var(--ink-faint)" }}>
+                    vs market ({marketRate})
+                  </div>
+                  <div className="mono" style={{ fontSize: 11, color: delta > 0.5 ? "var(--neg)" : (delta < -0.5 ? "var(--pos)" : "var(--ink-faint)") }}>
+                    {Math.abs(delta) < 0.05 ? "at market" : (delta > 0 ? `+${delta.toFixed(2)}% — bank fee` : `${delta.toFixed(2)}% — better than market`)}
+                  </div>
+                </div>
+              </div>
+            )}
+            {amount && !homeAmount && (
+              <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid var(--rule-soft)", fontSize: 11, color: "var(--ink-faint)", fontFamily: "var(--font-mono)", letterSpacing: "0.04em", lineHeight: 1.5 }}>
+                Leave blank for cash payments · we'll use today's market rate ({marketRate} JPY/{lockFrom}) as a best guess.
+              </div>
+            )}
+          </div>
+
+          {!hasItems && (
+            <div className="field" style={{ marginTop: 22 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+                <label className="field-label" style={{ margin: 0 }}>Split equally between · {participants.size} people</label>
+              </div>
+              <div style={{ fontSize: 11, color: "var(--ink-faint)", marginBottom: 8, fontFamily: "var(--font-mono)", letterSpacing: "0.04em" }}>
+                Sponsors are unticked by default · tap any pill to override for this expense only
+              </div>
+              <div className="split-pills">
+                {members.map(m => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    className={"split-pill " + (participants.has(m.id) ? "on" : "")}
+                    onClick={() => toggleParticipant(m.id)}
+                  >
+                    <Avatar member={m} size="sm" />
+                    <span>{m.name}</span>
+                    {!m.splitsByDefault && <span className="share" style={{ color: "var(--accent)" }}>sponsor</span>}
+                    {participants.has(m.id) && amount && (
+                      <span className="share">
+                        ¥{fmt(Number(amount) / participants.size, 0)}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              {amount && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    // If OCR found items, populate from those; otherwise seed with one blank line
+                    if (scanCandidates?.items?.length >= 2) {
+                      setItems(scanCandidates.items.map((it, i) => ({
+                        id: "it" + Date.now() + "-" + i,
+                        desc: it.desc,
+                        price: it.price,
+                        assignees: new Set(defaultSplit),
+                      })));
+                    } else {
+                      setItems([
+                        { id: "it" + Date.now(), desc: "", price: 0, assignees: new Set(defaultSplit) },
+                      ]);
+                    }
+                  }}
+                  style={{ display: "flex", width: "100%", marginTop: 14, padding: "14px 16px", background: "var(--bg-soft)", border: "1px solid var(--rule)", borderRadius: 6, cursor: "pointer", alignItems: "center", justifyContent: "space-between", textAlign: "left" }}
+                >
+                  <div>
+                    <div className="font-display" style={{ fontSize: 14, color: "var(--ink)", marginBottom: 2 }}>
+                      Some items only apply to some people?
+                    </div>
+                    <div className="mono" style={{ fontSize: 10, color: "var(--ink-faint)", letterSpacing: "0.04em" }}>
+                      {scanCandidates?.items?.length >= 2
+                        ? `${scanCandidates.items.length} items auto-detected · assign per-person`
+                        : "Split line-by-line · add items manually"}
+                    </div>
+                  </div>
+                  <span className="mono" style={{ fontSize: 11, color: "var(--accent)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                    Itemise →
+                  </span>
+                </button>
+              )}
+            </div>
+          )}
+
+          {hasItems && (
+            <div className="field" style={{ marginTop: 22 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+                <label className="field-label" style={{ margin: 0 }}>Per-item split · {items.length} line{items.length === 1 ? "" : "s"}</label>
+                <button
+                  type="button"
+                  onClick={() => setItems([])}
+                  style={{ background: "transparent", border: "1px solid var(--rule)", borderRadius: 6, padding: "4px 10px", fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", fontFamily: "var(--font-mono)", color: "var(--ink-faint)", cursor: "pointer" }}
+                >
+                  ← back to simple split
+                </button>
+              </div>
+
+              {/* Translation consent / status banner */}
+              {scanCandidates?.sourceLang && scanCandidates.sourceLang !== "en" && (
+                <div style={{ marginBottom: 10, padding: 10, borderRadius: 6, background: "var(--bg-soft)", border: "1px solid var(--rule-soft)", fontSize: 11, fontFamily: "var(--font-mono)", letterSpacing: "0.04em" }}>
+                  {translatorState === "downloadable" && (
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+                      <span>
+                        <span style={{ color: "var(--accent)" }}>◉</span> {scanCandidates.sourceLang === "ja" ? "Japanese" : "Non-English"} text detected.
+                        {" "}<span style={{ color: "var(--ink-faint)" }}>Enable offline translation? (~30MB, one-time)</span>
+                      </span>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button type="button" onClick={() => setTranslatorState("dict-only")} style={{ background: "transparent", border: "1px solid var(--rule)", color: "var(--ink-faint)", padding: "4px 10px", fontSize: 10, cursor: "pointer", fontFamily: "inherit", letterSpacing: "inherit" }}>Not now</button>
+                        <button type="button" onClick={enableTranslator} style={{ background: "var(--ink)", color: "var(--paper)", border: "1px solid var(--ink)", padding: "4px 10px", fontSize: 10, cursor: "pointer", fontFamily: "inherit", letterSpacing: "inherit" }}>Enable</button>
+                      </div>
+                    </div>
+                  )}
+                  {translatorState === "downloading" && (
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                        <span>Downloading {scanCandidates.sourceLang === "ja" ? "Japanese" : ""} language pack…</span>
+                        <span>{translatorProgress}%</span>
+                      </div>
+                      <div style={{ height: 2, background: "var(--rule-soft)" }}>
+                        <div style={{ height: "100%", width: `${translatorProgress}%`, background: "var(--accent)", transition: "width 0.2s" }} />
+                      </div>
+                    </div>
+                  )}
+                  {translatorState === "ready" && (
+                    <span style={{ color: "var(--pos)" }}>✓ Chrome translator active · {window.translator?.status?.nativeHits || 0} items translated on-device</span>
+                  )}
+                  {translatorState === "dict-only" && (
+                    <span><span style={{ color: "var(--ink-faint)" }}>Using built-in Japanese dictionary</span> · {Object.keys(translations).length} items translated · <button type="button" onClick={enableTranslator} style={{ background: "transparent", border: "none", color: "var(--accent)", padding: 0, fontSize: 10, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline", letterSpacing: "inherit" }}>enable Chrome translator</button></span>
+                  )}
+                  {translatorState === "unavailable" && (
+                    <span style={{ color: "var(--ink-faint)" }}>Translation unavailable in this browser · text shown as-is</span>
+                  )}
+                </div>
+              )}
+
+              <div style={{ fontSize: 11, color: "var(--ink-faint)", marginBottom: 10, fontFamily: "var(--font-mono)", letterSpacing: "0.04em", lineHeight: 1.5 }}>
+                Assign each line to whoever consumed it · tax &amp; service proportionally redistributed · saves as {(() => {
+                  const groups = new Set();
+                  items.forEach(it => { if (it.assignees.size > 0 && Number(it.price) > 0) groups.add(Array.from(it.assignees).sort().join(",")); });
+                  const n = groups.size;
+                  return `${n} ledger entr${n === 1 ? "y" : "ies"}`;
+                })()}
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {items.map((it, idx) => {
+                  const tr = translations[it.desc];
+                  return (
+                  <div key={it.id} style={{ border: "1px solid " + (it.suspicious ? "var(--neg)" : "var(--rule)"), borderRadius: 8, padding: 12, background: "var(--surface)" }}>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                      <span className="mono" style={{ fontSize: 10, color: "var(--ink-faint)", minWidth: 18 }}>{String(idx + 1).padStart(2, "0")}</span>
+                      <input
+                        type="text"
+                        value={it.desc}
+                        onChange={(e) => updateItem(it.id, "desc", e.target.value)}
+                        placeholder="Item description"
+                        style={{ flex: 1, background: "transparent", border: "none", borderBottom: "1px solid var(--rule-soft)", padding: "4px 0", fontFamily: "inherit", fontSize: 13, color: "var(--ink)", outline: "none" }}
+                      />
+                      <span className="mono" style={{ fontSize: 11, color: "var(--ink-faint)" }}>¥</span>
+                      <input
+                        type="number"
+                        value={it.price || ""}
+                        onChange={(e) => updateItem(it.id, "price", e.target.value)}
+                        placeholder="0"
+                        style={{ width: 80, background: "transparent", border: "none", borderBottom: "1px solid var(--rule-soft)", padding: "4px 0", fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--ink)", outline: "none", textAlign: "right" }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeItem(it.id)}
+                        style={{ background: "transparent", border: "none", color: "var(--ink-faint)", cursor: "pointer", fontSize: 18, lineHeight: 1, padding: "0 4px" }}
+                        aria-label="Remove item"
+                      >×</button>
+                    </div>
+                    {/* Translation line (appears if original was translated) */}
+                    {tr && tr.translated && tr.translated.toLowerCase() !== it.desc.toLowerCase() && (
+                      <div style={{ paddingLeft: 26, marginTop: 2, marginBottom: 8, display: "flex", gap: 6, alignItems: "baseline" }}>
+                        <span style={{ fontSize: 12, color: "var(--ink-faint)", fontStyle: "italic" }}>↳ {tr.translated}</span>
+                        <span className="mono" style={{ fontSize: 9, color: "var(--ink-faint)", opacity: 0.5, letterSpacing: "0.04em" }}>
+                          {tr.engine === "native" ? "chrome" : "dict"}
+                        </span>
+                      </div>
+                    )}
+                    {it.suspicious && (
+                      <div className="mono" style={{ paddingLeft: 26, marginTop: 2, marginBottom: 8, fontSize: 10, color: "var(--neg)", letterSpacing: "0.04em" }}>
+                        ⚠ Price is {Math.round((it.price / Number(amount)) * 100)}% of total — check if this is a subtotal
+                      </div>
+                    )}
+                    <div style={{ marginTop: tr || it.suspicious ? 0 : 10, display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {members.filter(m => m.canPay || m.splitsByDefault).map(m => {
+                        const on = it.assignees.has(m.id);
+                        return (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => toggleItemAssignee(it.id, m.id)}
+                            className={"split-pill " + (on ? "on" : "")}
+                            style={{ fontSize: 11, padding: "4px 8px", gap: 5 }}
+                          >
+                            <Avatar member={m} size="sm" />
+                            <span>{m.name}</span>
+                          </button>
+                        );
+                      })}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const all = new Set(defaultSplit);
+                          updateItem(it.id, "assignees", all);
+                        }}
+                        style={{ background: "transparent", border: "1px dashed var(--rule)", borderRadius: 999, padding: "4px 10px", fontSize: 10, fontFamily: "var(--font-mono)", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--ink-faint)", cursor: "pointer" }}
+                      >
+                        Reset → all
+                      </button>
+                    </div>
+                  </div>
+                  );
+                })}
+              </div>
+
+              <button
+                type="button"
+                onClick={addItem}
+                style={{ width: "100%", marginTop: 10, background: "transparent", border: "1px dashed var(--rule)", borderRadius: 8, padding: "10px", fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-faint)", cursor: "pointer" }}
+              >
+                + Add line
+              </button>
+
+              {/* Raw OCR lines — toggle open to promote missed lines into items */}
+              {scanCandidates?.rawLines && scanCandidates.rawLines.length > 0 && (
+                <div style={{ marginTop: 14 }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowRawLines(!showRawLines)}
+                    style={{ width: "100%", background: "transparent", border: "1px solid var(--rule-soft)", borderRadius: 6, padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-faint)" }}
+                  >
+                    <span>{showRawLines ? "▾" : "▸"} Raw OCR text · {scanCandidates.rawLines.filter(l => !l.captured).length} uncaptured lines</span>
+                    <span>{scanCandidates.rawLines.length} total</span>
+                  </button>
+                  {showRawLines && (
+                    <div style={{ marginTop: 8, maxHeight: 240, overflowY: "auto", border: "1px solid var(--rule-soft)", borderRadius: 6 }}>
+                      {scanCandidates.rawLines.map((ln, i) => {
+                        const tr = translations[ln.text];
+                        return (
+                          <div key={i} style={{ padding: "6px 10px", borderBottom: i === scanCandidates.rawLines.length - 1 ? "none" : "1px solid var(--rule-soft)", display: "flex", gap: 8, alignItems: "center", background: ln.captured ? "color-mix(in oklch, var(--pos) 5%, transparent)" : "transparent" }}>
+                            <span className="mono" style={{ fontSize: 9, color: "var(--ink-faint)", minWidth: 22, opacity: 0.6 }}>{String(i + 1).padStart(2, "0")}</span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 12, color: ln.captured ? "var(--ink-faint)" : "var(--ink)", fontFamily: "var(--font-mono)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                {ln.text}
+                              </div>
+                              {tr && tr.translated && tr.translated.toLowerCase() !== ln.text.toLowerCase() && (
+                                <div style={{ fontSize: 10, color: "var(--ink-faint)", fontStyle: "italic", marginTop: 1 }}>↳ {tr.translated}</div>
+                              )}
+                            </div>
+                            {ln.captured ? (
+                              <span className="mono" style={{ fontSize: 9, color: "var(--pos)", letterSpacing: "0.06em" }}>✓ in items</span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  // Try to infer a price from trailing number
+                                  const m = ln.text.match(/[¥￥]?\s*(\d{1,3}(?:[,.\s]\d{3})+|\d{2,})\s*[円]?\s*\*?$/);
+                                  let price = 0;
+                                  let desc = ln.text;
+                                  if (m) {
+                                    price = parseInt(m[1].replace(/[,.\s]/g, ''), 10);
+                                    desc = ln.text.slice(0, m.index).trim();
+                                  }
+                                  setItems([...items, { id: "it" + Date.now() + i, desc, price, assignees: new Set(defaultSplit) }]);
+                                }}
+                                style={{ background: "transparent", border: "1px solid var(--rule)", borderRadius: 4, padding: "2px 8px", fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--accent)", cursor: "pointer", letterSpacing: "0.04em" }}
+                              >
+                                + add
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Reconciler */}
+              <div style={{ marginTop: 14, padding: 12, borderRadius: 8, background: "var(--surface)", border: "1px solid var(--rule-soft)", fontFamily: "var(--font-mono)", fontSize: 11 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                  <span style={{ color: "var(--ink-faint)" }}>Items subtotal</span>
+                  <span>¥{fmt(itemsSum, 0)}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                  <span style={{ color: "var(--ink-faint)" }}>Tax / service / rounding</span>
+                  <span style={{ color: reconcileDelta < 0 ? "var(--neg)" : "var(--ink)" }}>
+                    {reconcileDelta >= 0 ? "+" : ""}¥{fmt(reconcileDelta, 0)}
+                  </span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 6, borderTop: "1px solid var(--rule-soft)", marginTop: 6 }}>
+                  <span style={{ color: "var(--ink)" }}>Receipt total</span>
+                  <span style={{ color: "var(--ink)" }}>¥{fmt(Number(amount) || 0, 0)}</span>
+                </div>
+                {reconcileDelta < 0 && (
+                  <div style={{ marginTop: 8, padding: "6px 8px", background: "color-mix(in oklch, var(--neg) 10%, transparent)", borderRadius: 4, color: "var(--neg)", fontSize: 10, letterSpacing: "0.04em" }}>
+                    ⚠ Items sum exceeds receipt total · check line prices
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="modal-foot">
+          <div className="mono" style={{ fontSize: 10, color: "var(--ink-faint)", letterSpacing: "0.06em" }}>
+            {amount ? `Total ¥${fmt(Number(amount))} · ¥${fmt(Number(amount) / participants.size)} each` : "Enter an amount to preview"}
+          </div>
+          <div className="btn-row">
+            <button className="btn ghost" onClick={onClose}>Cancel</button>
+            <button className="btn accent" onClick={handleSave} disabled={!amount || !title}>Lock &amp; save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { AddExpense });
+
+
+// === components/settle.jsx ===
+// Balances panel + Settlement graph view
+
+function BalancesPanel({ members, balances, baseCurrency }) {
+  const max = Math.max(1, ...Object.values(balances).map(v => Math.abs(v)));
+  const sorted = [...members].sort((a, b) => (balances[b.id] || 0) - (balances[a.id] || 0));
+  return (
+    <div className="card">
+      <div className="card-head">
+        <h3>Where everyone stands</h3>
+        <span className="sub">in {baseCurrency}</span>
+      </div>
+      {sorted.map(m => {
+        const v = balances[m.id] || 0;
+        const pct = (Math.abs(v) / max) * 50;
+        const isPos = v >= 0;
+        const inHome = Math.abs(v) / (m.home === "AUD" ? 98.4 : m.home === "SGD" ? 114.2 : 1);
+        return (
+          <div key={m.id} className="balance-row">
+            <div className="who">
+              <Avatar member={m} size="sm" />
+              <div>
+                <div className="name">{m.name}</div>
+                <div className="home">home · {m.home}</div>
+              </div>
+            </div>
+            <div className={"balance-bar " + (isPos ? "pos" : "neg")}>
+              <div className="zero" />
+              <div className="fill" style={{ width: pct + "%" }} />
+            </div>
+            <div className={"balance-amount " + (isPos ? "pos" : "neg")}>
+              {isPos ? "+" : "−"}¥{fmt(Math.abs(v))}
+              <span className="sub">≈ {formatMoney(inHome, m.home)}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function SettlementGraph({ members, settlements, balances, baseCurrency }) {
+  // Layout members around a circle
+  const size = 520;
+  const cx = size / 2, cy = size / 2;
+  const radius = 180;
+  const positions = {};
+  members.forEach((m, i) => {
+    const angle = (i / members.length) * Math.PI * 2 - Math.PI / 2;
+    positions[m.id] = {
+      x: cx + Math.cos(angle) * radius,
+      y: cy + Math.sin(angle) * radius,
+      angle,
+    };
+  });
+
+  const [hovered, setHovered] = useState(null);
+
+  return (
+    <div className="settle-wrap">
+      <svg className="settle-svg" viewBox={`0 0 ${size} ${size}`} preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)" />
+          </marker>
+          <marker id="arrowheadDim" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--rule-soft)" />
+          </marker>
+        </defs>
+
+        {/* Concentric rings decoration */}
+        <circle cx={cx} cy={cy} r={radius + 40} fill="none" stroke="var(--rule-soft)" strokeDasharray="2 4" />
+        <circle cx={cx} cy={cy} r={radius - 60} fill="none" stroke="var(--rule-soft)" strokeDasharray="2 4" />
+        <text x={cx} y={cy - 8} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="9" letterSpacing="2" fill="var(--ink-faint)">MINIMIZED</text>
+        <text x={cx} y={cy + 6} textAnchor="middle" fontFamily="var(--font-display)" fontSize="16" fontStyle="italic" fill="var(--ink)">{settlements.length} transfers</text>
+        <text x={cx} y={cy + 22} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="9" letterSpacing="2" fill="var(--ink-faint)">TO SETTLE</text>
+
+        {/* Debt edges */}
+        {settlements.map((s, i) => {
+          const from = positions[s.from];
+          const to = positions[s.to];
+          // Slight offset so arrow doesn't overlap node
+          const dx = to.x - from.x, dy = to.y - from.y;
+          const len = Math.sqrt(dx*dx + dy*dy);
+          const ux = dx / len, uy = dy / len;
+          const startX = from.x + ux * 28, startY = from.y + uy * 28;
+          const endX = to.x - ux * 32, endY = to.y - uy * 32;
+          // curved
+          const mx = (startX + endX) / 2 + (-uy) * 18;
+          const my = (startY + endY) / 2 + (ux) * 18;
+          const isHovered = hovered === i;
+          const dim = hovered !== null && !isHovered;
+          const receiver = members.find(m => m.id === s.to);
+          // convert to receiver's home currency
+          const rate = receiver.home === "AUD" ? 98.4 : receiver.home === "SGD" ? 114.2 : 1;
+          const inHome = s.amount / rate;
+          return (
+            <g key={i} onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)} style={{ cursor: "pointer" }}>
+              <path
+                d={`M${startX},${startY} Q${mx},${my} ${endX},${endY}`}
+                fill="none"
+                stroke={dim ? "var(--rule-soft)" : "var(--accent)"}
+                strokeWidth={isHovered ? 2.5 : 1.5}
+                markerEnd={dim ? "url(#arrowheadDim)" : "url(#arrowhead)"}
+                opacity={dim ? 0.3 : 1}
+              />
+              {/* Amount label */}
+              <g transform={`translate(${mx},${my})`} opacity={dim ? 0.3 : 1}>
+                <rect x="-44" y="-14" width="88" height="28" fill="var(--paper)" stroke={isHovered ? "var(--accent)" : "var(--rule-soft)"} />
+                <text x="0" y="-1" textAnchor="middle" fontFamily="var(--font-display)" fontSize="13" fill="var(--ink)">¥{fmt(s.amount, 0)}</text>
+                <text x="0" y="10" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="8" letterSpacing="1" fill="var(--ink-faint)">{receiver.home} {fmt(inHome, 2)}</text>
+              </g>
+            </g>
+          );
+        })}
+
+        {/* Member nodes */}
+        {members.map(m => {
+          const p = positions[m.id];
+          const v = balances[m.id] || 0;
+          const isPos = v >= 0;
+          return (
+            <g key={m.id} transform={`translate(${p.x},${p.y})`}>
+              <circle r="26" fill={m.color} />
+              <text y="5" textAnchor="middle" fontFamily="var(--font-display)" fontSize="18" fontWeight="500" fill="#fff">{m.initials}</text>
+              {/* Label */}
+              <g transform={`translate(0, ${p.y > cy ? 50 : -50})`}>
+                <text textAnchor="middle" fontFamily="var(--font-display)" fontSize="15" fill="var(--ink)" y="0">{m.name}</text>
+                <text textAnchor="middle" fontFamily="var(--font-mono)" fontSize="10" fill={isPos ? "var(--pos)" : "var(--neg)"} y="14" letterSpacing="0.5">
+                  {isPos ? "+" : "−"}¥{fmt(Math.abs(v))}
+                </text>
+              </g>
+            </g>
+          );
+        })}
+      </svg>
+
+      <div className="settle-legend">
+        <div className="settle-stat">
+          <span style={{ letterSpacing: "0.1em", textTransform: "uppercase", fontSize: 10 }}>Transfers required</span>
+          <span className="val">{settlements.length}</span>
+        </div>
+        <div className="settle-stat">
+          <span style={{ letterSpacing: "0.1em", textTransform: "uppercase", fontSize: 10 }}>Naïve approach</span>
+          <span className="val" style={{ color: "var(--ink-faint)", textDecoration: "line-through" }}>
+            {(() => {
+              const deb = Object.values(balances).filter(v => v < -0.5).length;
+              const cred = Object.values(balances).filter(v => v > 0.5).length;
+              return deb * cred;
+            })()}
+          </span>
+        </div>
+        <div className="settle-stat">
+          <span style={{ letterSpacing: "0.1em", textTransform: "uppercase", fontSize: 10 }}>Total moved</span>
+          <span className="val">¥{fmt(settlements.reduce((s, x) => s + x.amount, 0))}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SettlementList({ members, settlements, baseCurrency }) {
+  if (!settlements.length) {
+    return (
+      <div className="card">
+        <div style={{ padding: "40px 20px", textAlign: "center" }}>
+          <div className="font-display" style={{ fontSize: 28, fontStyle: "italic" }}>All square.</div>
+          <div style={{ color: "var(--ink-soft)", marginTop: 6 }}>Everyone has paid their share.</div>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div>
+      {settlements.map((s, i) => {
+        const from = members.find(m => m.id === s.from);
+        const to = members.find(m => m.id === s.to);
+        const rateFrom = from.home === "AUD" ? 98.4 : from.home === "SGD" ? 114.2 : 1;
+        const rateTo = to.home === "AUD" ? 98.4 : to.home === "SGD" ? 114.2 : 1;
+        const fromEq = s.amount / rateFrom;
+        const toEq = s.amount / rateTo;
+        return (
+          <div key={i} className="settle-list-item">
+            <div className="settle-who">
+              <Avatar member={from} />
+              <div>
+                <div className="name">{from.name}</div>
+                <div className="home">pays from {from.home}</div>
+              </div>
+            </div>
+            <div className="settle-arrow">→</div>
+            <div className="settle-who to">
+              <div>
+                <div className="name">{to.name}</div>
+                <div className="home">receives in {to.home}</div>
+              </div>
+              <Avatar member={to} />
+            </div>
+            <div className="settle-amt">
+              <div className="primary">¥{fmt(s.amount)}</div>
+              <div className="secondary">
+                {formatMoney(fromEq, from.home)} <span style={{ color: "var(--accent)" }}>→</span> {formatMoney(toEq, to.home)}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+Object.assign(window, { BalancesPanel, SettlementGraph, SettlementList });
+
+
+// === components/extras.jsx ===
+// Tweaks panel + Add Member modal + People view
+
+function TweaksPanel({ open, theme, setTheme, density, setDensity, currencyMode, setCurrencyMode }) {
+  return (
+    <div className={"tweaks-panel " + (open ? "open" : "")}>
+      <h4>Tweaks</h4>
+      <div className="tweak-group">
+        <div className="label">Theme</div>
+        <div className="tweak-opts">
+          <button className={"tweak-opt " + (theme === "paper" ? "on" : "")} onClick={() => setTheme("paper")}>Paper</button>
+          <button className={"tweak-opt " + (theme === "fresh" ? "on" : "")} onClick={() => setTheme("fresh")}>Fresh</button>
+          <button className={"tweak-opt " + (theme === "terminal" ? "on" : "")} onClick={() => setTheme("terminal")}>Terminal</button>
+        </div>
+      </div>
+      <div className="tweak-group">
+        <div className="label">Currency display</div>
+        <div className="tweak-opts">
+          <button className={"tweak-opt " + (currencyMode === "base" ? "on" : "")} onClick={() => setCurrencyMode("base")}>Base only</button>
+          <button className={"tweak-opt " + (currencyMode === "both" ? "on" : "")} onClick={() => setCurrencyMode("both")}>Base + home</button>
+        </div>
+      </div>
+      <div className="tweak-group">
+        <div className="label">Density</div>
+        <div className="tweak-opts">
+          <button className={"tweak-opt " + (density === "cozy" ? "on" : "")} onClick={() => setDensity("cozy")}>Cozy</button>
+          <button className={"tweak-opt " + (density === "compact" ? "on" : "")} onClick={() => setDensity("compact")}>Compact</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RemoveMemberModal({ member, expenses, balances, onClose, onConfirm }) {
+  if (!member) return null;
+  const paidCount = expenses.filter(e => e.payer === member.id).length;
+  const paidTotal = expenses.filter(e => e.payer === member.id).reduce((s, e) => s + e.amount, 0);
+  const splitCount = expenses.filter(e => e.split.among.includes(member.id)).length;
+  const balance = balances[member.id] || 0;
+  const hasHistory = paidCount > 0 || splitCount > 0;
+  const hasOpenBalance = Math.abs(balance) > 1;
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" style={{ width: 520 }} onClick={e => e.stopPropagation()}>
+        <div className="modal-head">
+          <div>
+            <div className="mono" style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--neg)", marginBottom: 4 }}>
+              Confirm removal
+            </div>
+            <h2>Remove {member.name} from the trip?</h2>
+          </div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          <div style={{ display: "flex", alignItems: "center", gap: 14, padding: 14, background: "var(--bg-soft)", border: "1px solid var(--rule-soft)", marginBottom: 18 }}>
+            <Avatar member={member} size="lg" />
+            <div style={{ flex: 1 }}>
+              <div className="font-display" style={{ fontSize: 18, letterSpacing: "-0.01em" }}>{member.name}</div>
+              <div className="mono" style={{ fontSize: 11, color: "var(--ink-faint)", letterSpacing: "0.06em" }}>
+                {member.homeFlag} {member.home} · {member.splitsByDefault ? "splits in" : "sponsor"}
+              </div>
+            </div>
+          </div>
+
+          {!hasHistory && (
+            <div style={{ padding: 14, border: "1px solid var(--rule-soft)", marginBottom: 18, fontSize: 13, lineHeight: 1.5, color: "var(--ink-soft)" }}>
+              No expenses tied to {member.name}. Removing is clean — nothing else changes.
+            </div>
+          )}
+
+          {hasHistory && (
+            <>
+              <div style={{ padding: 14, border: "1px solid var(--rule-soft)", marginBottom: 14, background: "var(--bg-soft)" }}>
+                <div className="mono" style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 8 }}>
+                  History in this trip
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
+                  <div>
+                    <div className="mono" style={{ fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-faint)" }}>Paid</div>
+                    <div className="font-display" style={{ fontSize: 17 }}>{paidCount}×</div>
+                    <div className="mono" style={{ fontSize: 10, color: "var(--ink-faint)" }}>¥{fmt(paidTotal)}</div>
+                  </div>
+                  <div>
+                    <div className="mono" style={{ fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-faint)" }}>Split into</div>
+                    <div className="font-display" style={{ fontSize: 17 }}>{splitCount}×</div>
+                    <div className="mono" style={{ fontSize: 10, color: "var(--ink-faint)" }}>expenses</div>
+                  </div>
+                  <div>
+                    <div className="mono" style={{ fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-faint)" }}>Balance</div>
+                    <div className="font-display" style={{ fontSize: 17, color: balance >= 0 ? "var(--pos)" : "var(--neg)" }}>
+                      {balance >= 0 ? "+" : "−"}¥{fmt(Math.abs(balance))}
+                    </div>
+                    <div className="mono" style={{ fontSize: 10, color: "var(--ink-faint)" }}>{balance >= 0 ? "owed to" : "owes"}</div>
+                  </div>
+                </div>
+              </div>
+
+              {hasOpenBalance && (
+                <div style={{ padding: 12, border: "1px solid var(--neg)", marginBottom: 14, fontSize: 12, lineHeight: 1.5, color: "var(--ink)", background: "rgba(184,73,61,0.06)" }}>
+                  <strong>Heads up:</strong> {member.name} has an open balance. If they've already settled in cash outside the app, proceed. Otherwise you might want to record the settlement first.
+                </div>
+              )}
+
+              <div className="mono" style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 8 }}>
+                What should happen to their expenses?
+              </div>
+              <div style={{ display: "grid", gap: 8 }}>
+                <button
+                  type="button"
+                  className="tweak-opt"
+                  style={{ padding: 14, textAlign: "left" }}
+                  onClick={() => onConfirm("reassign")}
+                >
+                  <div style={{ fontFamily: "var(--font-display)", fontSize: 15, textTransform: "none", letterSpacing: 0, marginBottom: 4 }}>
+                    Keep expenses, just remove them from splits
+                  </div>
+                  <div style={{ fontSize: 11, opacity: 0.7, textTransform: "none", letterSpacing: 0, fontFamily: "var(--font-mono)" }}>
+                    Expenses they paid stay in the ledger (marked "former member"). They drop out of every split they were in — the remaining people re-share. <strong>Recommended if they actually went on the trip.</strong>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  className="tweak-opt"
+                  style={{ padding: 14, textAlign: "left" }}
+                  onClick={() => onConfirm("delete")}
+                >
+                  <div style={{ fontFamily: "var(--font-display)", fontSize: 15, textTransform: "none", letterSpacing: 0, marginBottom: 4 }}>
+                    Delete everything they touched
+                  </div>
+                  <div style={{ fontSize: 11, opacity: 0.7, textTransform: "none", letterSpacing: 0, fontFamily: "var(--font-mono)" }}>
+                    Wipe their {paidCount} paid expense{paidCount === 1 ? "" : "s"} and pull them from {splitCount} shared bill{splitCount === 1 ? "" : "s"}. Use this if they were added by mistake.
+                  </div>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+        <div className="modal-foot">
+          <button className="btn ghost" onClick={onClose}>Cancel</button>
+          {!hasHistory && (
+            <button className="btn" style={{ background: "var(--neg)", color: "#fff", borderColor: "var(--neg)" }} onClick={() => onConfirm("delete")}>
+              Remove {member.name}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddMemberModal({ onClose, onAdd, existingCount }) {
+  const [name, setName] = useState("");
+  const [home, setHome] = useState("AUD");
+  const [splitsByDefault, setSplitsByDefault] = useState(true);
+  const colors = ["#C9593B", "#5B7C6A", "#8A5A8C", "#3E5C78", "#B08A3E", "#5F6B8A", "#7A4A3A"];
+  const flags = { AUD: "🇦🇺", SGD: "🇸🇬", USD: "🇺🇸", EUR: "🇪🇺", GBP: "🇬🇧", JPY: "🇯🇵", NZD: "🇳🇿" };
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" style={{ width: 480 }} onClick={e => e.stopPropagation()}>
+        <div className="modal-head">
+          <div>
+            <div className="mono" style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 4 }}>
+              Member {existingCount + 1}
+            </div>
+            <h2>Who's joining?</h2>
+          </div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          <div className="field">
+            <label className="field-label">Name</label>
+            <input className="field-input" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Taro" autoFocus />
+          </div>
+          <div className="field">
+            <label className="field-label">Default behaviour in expenses</label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              <button type="button" className={"tweak-opt " + (splitsByDefault ? "on" : "")} style={{ padding: 12, fontSize: 11, textAlign: "left" }} onClick={() => setSplitsByDefault(true)}>
+                Splits in<br/>
+                <span style={{ fontSize: 9, opacity: 0.7, textTransform: "none", letterSpacing: 0 }}>Pre-ticked on every new expense</span>
+              </button>
+              <button type="button" className={"tweak-opt " + (!splitsByDefault ? "on" : "")} style={{ padding: 12, fontSize: 11, textAlign: "left" }} onClick={() => setSplitsByDefault(false)}>
+                Sponsor<br/>
+                <span style={{ fontSize: 9, opacity: 0.7, textTransform: "none", letterSpacing: 0 }}>Pays the card, opts out of splits</span>
+              </button>
+            </div>
+            <div style={{ fontSize: 11, color: "var(--ink-faint)", marginTop: 8, fontFamily: "var(--font-mono)", letterSpacing: "0.04em" }}>
+              Override per expense by tapping pills — defaults are just a starting point.
+            </div>
+          </div>
+          <div className="field">
+            <label className="field-label">Home currency</label>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {["AUD", "SGD", "USD", "EUR", "GBP", "JPY", "NZD"].map(c => (
+                <button key={c} type="button" className={"tweak-opt " + (home === c ? "on" : "")} style={{ padding: "10px 14px", fontSize: 12 }} onClick={() => setHome(c)}>
+                  {flags[c]} {c}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="modal-foot">
+          <button className="btn ghost" onClick={onClose}>Cancel</button>
+          <button className="btn accent" disabled={!name.trim()} onClick={() => {
+              const initials = name.trim().charAt(0).toUpperCase();
+              onAdd({ id: "m" + Date.now(), name: name.trim(), initials, home, homeFlag: flags[home], color: colors[existingCount % colors.length], canPay: true, splitsByDefault });
+              onClose();
+            }}>Add to trip</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PeopleView({ members, expenses, balances, onRemove }) {
+  return (
+    <div className="card">
+      <div className="card-head">
+        <h3>The party</h3>
+        <span className="sub">{members.length} travellers · {members.filter(m=>m.splitsByDefault).length} splitting · {new Set(members.map(m => m.home)).size} home currencies</span>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
+        {members.map(m => {
+          const paid = expenses.filter(e => e.payer === m.id).reduce((s, e) => s + e.amount, 0);
+          const timesPaid = expenses.filter(e => e.payer === m.id).length;
+          const inHome = Math.abs(balances[m.id] || 0) / (m.home === "AUD" ? 98.4 : m.home === "SGD" ? 114.2 : 1);
+          const isPos = (balances[m.id] || 0) >= 0;
+          const isSponsor = !m.splitsByDefault;
+          return (
+            <div key={m.id} style={{ position: "relative", border: isSponsor ? "1px dashed var(--ink)" : "1px solid var(--rule-soft)", padding: 18, background: "var(--bg-soft)" }}>
+              {onRemove && (
+                <button
+                  onClick={() => onRemove(m)}
+                  title={`Remove ${m.name}`}
+                  aria-label={`Remove ${m.name}`}
+                  style={{
+                    position: "absolute", top: 10, right: 10,
+                    width: 22, height: 22, padding: 0, borderRadius: "50%",
+                    border: "1px solid var(--rule-soft)", background: "var(--paper)",
+                    fontSize: 14, lineHeight: "20px", color: "var(--ink-faint)",
+                    cursor: "pointer", fontFamily: "var(--font-mono)"
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "var(--neg)"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "var(--neg)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "var(--paper)"; e.currentTarget.style.color = "var(--ink-faint)"; e.currentTarget.style.borderColor = "var(--rule-soft)"; }}
+                >×</button>
+              )}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+                <Avatar member={m} size="lg" />
+                <div>
+                  <div className="font-display" style={{ fontSize: 20, letterSpacing: "-0.01em" }}>{m.name}</div>
+                  <div className="mono" style={{ fontSize: 11, color: "var(--ink-faint)", letterSpacing: "0.06em" }}>
+                    {m.homeFlag} Home · {m.home}{isSponsor && <> · <span style={{ color: "var(--accent)" }}>sponsor</span></>}
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, paddingTop: 12, borderTop: "1px solid var(--rule-soft)" }}>
+                <div>
+                  <div className="mono" style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-faint)" }}>Paid</div>
+                  <div className="font-display" style={{ fontSize: 18 }}>¥{fmt(paid)}</div>
+                  <div className="mono" style={{ fontSize: 10, color: "var(--ink-faint)" }}>{timesPaid} time{timesPaid === 1 ? "" : "s"}</div>
+                </div>
+                <div>
+                  <div className="mono" style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-faint)" }}>Position</div>
+                  <div className="font-display" style={{ fontSize: 18, color: isPos ? "var(--pos)" : "var(--neg)" }}>
+                    {isPos ? "+" : "−"}¥{fmt(Math.abs(balances[m.id] || 0))}
+                  </div>
+                  <div className="mono" style={{ fontSize: 10, color: "var(--ink-faint)" }}>≈ {formatMoney(inHome, m.home)}</div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ActivityView({ expenses, members }) {
+  return (
+    <div className="card">
+      <div className="card-head">
+        <h3>Activity feed</h3>
+        <span className="sub">Chronological, newest last</span>
+      </div>
+      <div style={{ position: "relative", paddingLeft: 22 }}>
+        <div style={{ position: "absolute", left: 6, top: 4, bottom: 4, width: 1, background: "var(--rule-soft)" }} />
+        {expenses.map((e, i) => {
+          const payer = members.find(m => m.id === e.payer);
+          return (
+            <div key={e.id} style={{ position: "relative", padding: "10px 0 10px 14px", borderBottom: i < expenses.length - 1 ? "1px solid var(--rule-soft)" : "none" }}>
+              <div style={{ position: "absolute", left: -21, top: 16, width: 9, height: 9, borderRadius: "50%", background: payer.color, border: "2px solid var(--paper)" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 10 }}>
+                <div>
+                  <span className="mono" style={{ fontSize: 10, letterSpacing: "0.08em", color: "var(--ink-faint)", textTransform: "uppercase", marginRight: 10 }}>{e.date}</span>
+                  <span className="font-display" style={{ fontSize: 16, letterSpacing: "-0.01em" }}>
+                    <span style={{ color: "var(--accent)" }}>{payer.name}</span> paid for <em>{e.title}</em>
+                  </span>
+                </div>
+                <div className="mono" style={{ fontSize: 12, color: "var(--ink-soft)" }}>
+                  ¥{fmt(e.amount)} · locked @ {e.lockedRate.rate}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { TweaksPanel, AddMemberModal, RemoveMemberModal, PeopleView, ActivityView });
+
+
+// === components/App.jsx ===
+// Main App — composes everything together
+
+function App() {
+  const data = window.TRIP_DATA;
+  const [members, setMembers] = useState(data.members);
+  const [expenses, setExpenses] = useState(data.expenses);
+  const [tab, setTab] = useState("expenses");
+  const [activeMember, setActiveMember] = useState(null);
+  const [openExpense, setOpenExpense] = useState(null);
+  const [addingExpense, setAddingExpense] = useState(false);
+  const [addingMember, setAddingMember] = useState(false);
+  const [removingMember, setRemovingMember] = useState(null); // member being confirmed for deletion
+  const [view, setView] = useState("desktop"); // desktop | mobile | both
+  const [toast, setToast] = useState(null);
+
+  // Tweaks
+  const [theme, setTheme] = useState("paper");
+  const [density, setDensity] = useState("cozy");
+  const [currencyMode, setCurrencyMode] = useState("both");
+  const [tweaksOpen, setTweaksOpen] = useState(false);
+
+  // Listen for tweak-mode messages from host
+  useEffect(() => {
+    function onMsg(e) {
+      if (e.data?.type === "__activate_edit_mode") setTweaksOpen(true);
+      if (e.data?.type === "__deactivate_edit_mode") setTweaksOpen(false);
+    }
+    window.addEventListener("message", onMsg);
+    window.parent.postMessage({ type: "__edit_mode_available" }, "*");
+    return () => window.removeEventListener("message", onMsg);
+  }, []);
+
+  // Apply theme to body
+  useEffect(() => {
+    document.body.className = theme === "paper" ? "" : "theme-" + theme;
+    document.body.style.setProperty("--density", density === "cozy" ? "1" : "0.85");
+  }, [theme, density]);
+
+  // Ghost member shown in rows for former trip members who paid for things.
+  // Never in splits, never in balances, never selectable — just a label for historical expenses.
+  const GHOST_MEMBER = { id: "__removed__", name: "Former member", initials: "—", home: "—", homeFlag: "—", color: "#8A8378", canPay: false, splitsByDefault: false, __ghost: true };
+  const membersWithGhost = expenses.some(e => e.payer === "__removed__") ? [...members, GHOST_MEMBER] : members;
+
+  const balances = useMemo(() => computeBalances(data.trip, members, expenses), [members, expenses]);
+  const settlements = useMemo(() => simplifyDebts(balances), [balances]);
+  const totalBase = expenses.reduce((s, e) => s + e.amount, 0);
+  const perHead = members.length > 0 ? totalBase / members.length : 0;
+  const myMember = activeMember ? members.find(m => m.id === activeMember) : members[0];
+  const myBalance = balances[myMember.id] || 0;
+
+  const [filterCategory, setFilterCategory] = useState("all");
+  const categories = ["all", ...Array.from(new Set(expenses.map(e => e.category)))];
+
+  function showToast(msg) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2400);
+  }
+
+  function handleAddExpense(e) {
+    setExpenses([...expenses, e]);
+    showToast(`Locked at ${e.lockedRate.rate} ${data.trip.baseCurrency}/${e.lockedRate.from}`);
+  }
+  function handleAddMember(m) {
+    setMembers([...members, m]);
+    showToast(`${m.name} joined the trip`);
+  }
+  function handleRequestRemove(m) {
+    if (members.length <= 1) {
+      showToast("Can't remove the last member of a trip");
+      return;
+    }
+    setRemovingMember(m);
+  }
+  function handleConfirmRemove(strategy) {
+    const m = removingMember;
+    if (!m) return;
+    let nextExpenses = expenses;
+    if (strategy === "delete") {
+      // Drop every expense where this member was payer; drop them from split lists
+      nextExpenses = expenses
+        .filter(e => e.payer !== m.id)
+        .map(e => ({ ...e, split: { ...e.split, among: e.split.among.filter(id => id !== m.id) } }))
+        .filter(e => e.split.among.length > 0);
+    } else if (strategy === "reassign") {
+      // Keep expenses paid by this person but leave them detached (payer = __removed__)
+      // and remove from all split lists.
+      nextExpenses = expenses.map(e => {
+        const among = e.split.among.filter(id => id !== m.id);
+        return { ...e, payer: e.payer === m.id ? "__removed__" : e.payer, split: { ...e.split, among } };
+      }).filter(e => e.split.among.length > 0);
+    }
+    setExpenses(nextExpenses);
+    setMembers(members.filter(x => x.id !== m.id));
+    if (activeMember === m.id) setActiveMember(null);
+    setRemovingMember(null);
+    showToast(`${m.name} removed from the trip`);
+  }
+
+  function DesktopContent() {
+    return (
+      <>
+        <Masthead trip={data.trip} />
+        <MembersStrip
+          members={members}
+          activeId={activeMember}
+          onSelect={setActiveMember}
+          onAdd={() => setAddingMember(true)}
+          onRemove={handleRequestRemove}
+        />
+        <HeroSummary
+          trip={data.trip}
+          totalBase={totalBase}
+          perHead={perHead}
+          myBalance={myBalance}
+          myMember={myMember}
+          memberCount={members.length}
+        />
+        <Tabs
+          value={tab}
+          onChange={setTab}
+          counts={{ expenses: expenses.length, settle: settlements.length, people: members.length }}
+        />
+        {tab === "expenses" && (
+          <div className="layout">
+            <div>
+              <div className="action-bar">
+                <div className="filter-chips">
+                  {categories.map(c => (
+                    <button
+                      key={c}
+                      className={"filter-chip " + (filterCategory === c ? "on" : "")}
+                      onClick={() => setFilterCategory(c)}
+                    >
+                      {c === "all" ? "All categories" : c}
+                    </button>
+                  ))}
+                </div>
+                <div className="spacer" />
+                <button className="btn accent" onClick={() => setAddingExpense(true)}>+ New expense</button>
+              </div>
+              <ExpenseList
+                expenses={expenses}
+                members={membersWithGhost}
+                onOpen={setOpenExpense}
+                filters={{ category: filterCategory, member: activeMember }}
+                baseCurrency={data.trip.baseCurrency}
+              />
+            </div>
+            <aside>
+              <BalancesPanel members={members} balances={balances} baseCurrency={data.trip.baseCurrency} />
+              <div className="card" style={{ marginTop: 18 }}>
+                <div className="card-head">
+                  <h3>FX reference</h3>
+                  <span className="sub">Today's market</span>
+                </div>
+                <div style={{ display: "grid", gap: 10 }}>
+                  {[
+                    { pair: "JPY / AUD", rate: data.marketRates.JPY_per_AUD },
+                    { pair: "JPY / SGD", rate: data.marketRates.JPY_per_SGD },
+                    { pair: "AUD / SGD", rate: data.marketRates.AUD_per_SGD },
+                  ].map(r => (
+                    <div key={r.pair} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", paddingBottom: 8, borderBottom: "1px dashed var(--rule-soft)" }}>
+                      <span className="mono" style={{ fontSize: 11, letterSpacing: "0.06em", color: "var(--ink-soft)" }}>{r.pair}</span>
+                      <span className="font-display" style={{ fontSize: 18 }}>{r.rate}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mono" style={{ fontSize: 10, color: "var(--ink-faint)", letterSpacing: "0.06em", marginTop: 10 }}>
+                  Used only as a sanity check · actual rates are locked per payment.
+                </div>
+              </div>
+            </aside>
+          </div>
+        )}
+        {tab === "settle" && (
+          <div className="layout">
+            <div>
+              <div className="card">
+                <div className="card-head">
+                  <h3>Debt, simplified</h3>
+                  <span className="sub">Greedy min-transfer algorithm</span>
+                </div>
+                <SettlementGraph
+                  members={members}
+                  settlements={settlements}
+                  balances={balances}
+                  baseCurrency={data.trip.baseCurrency}
+                />
+              </div>
+              <div style={{ marginTop: 18 }}>
+                <div className="mono" style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-soft)", marginBottom: 10 }}>
+                  Transfer list
+                </div>
+                <SettlementList members={members} settlements={settlements} baseCurrency={data.trip.baseCurrency} />
+                <div style={{ marginTop: 18, display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                  <button className="btn ghost">Export CSV</button>
+                  <button className="btn">Send WhatsApp summary</button>
+                </div>
+              </div>
+            </div>
+            <aside>
+              <BalancesPanel members={members} balances={balances} baseCurrency={data.trip.baseCurrency} />
+            </aside>
+          </div>
+        )}
+        {tab === "people" && <PeopleView members={members} expenses={expenses} balances={balances} onRemove={handleRequestRemove} />}
+        {tab === "activity" && <ActivityView expenses={expenses} members={membersWithGhost} />}
+      </>
+    );
+  }
+
+  function MobileContent() {
+    return (
+      <div className="mobile-frame">
+        <div className="mobile-screen">
+          <Masthead trip={data.trip} />
+          <HeroSummary
+            trip={data.trip}
+            totalBase={totalBase}
+            perHead={perHead}
+            myBalance={myBalance}
+            myMember={myMember}
+            memberCount={members.length}
+          />
+          <Tabs
+            value={tab}
+            onChange={setTab}
+            counts={{ expenses: expenses.length, settle: settlements.length, people: members.length }}
+          />
+          {tab === "expenses" && (
+            <>
+              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
+                <button className="btn accent" style={{ padding: "8px 12px", fontSize: 10 }} onClick={() => setAddingExpense(true)}>+ Add</button>
+              </div>
+              <ExpenseList
+                expenses={expenses}
+                members={membersWithGhost}
+                onOpen={setOpenExpense}
+                filters={{ category: filterCategory, member: activeMember }}
+                baseCurrency={data.trip.baseCurrency}
+              />
+              <div style={{ marginTop: 14 }}>
+                <BalancesPanel members={members} balances={balances} baseCurrency={data.trip.baseCurrency} />
+              </div>
+            </>
+          )}
+          {tab === "settle" && (
+            <>
+              <div className="card">
+                <div className="card-head"><h3 style={{ fontSize: 18 }}>Settle up</h3></div>
+                <SettlementList members={members} settlements={settlements} baseCurrency={data.trip.baseCurrency} />
+              </div>
+            </>
+          )}
+          {tab === "people" && <PeopleView members={members} expenses={expenses} balances={balances} onRemove={handleRequestRemove} />}
+          {tab === "activity" && <ActivityView expenses={expenses} members={membersWithGhost} />}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="view-switcher">
+        <button className={view === "desktop" ? "on" : ""} onClick={() => setView("desktop")}>Desktop</button>
+        <button className={view === "mobile" ? "on" : ""} onClick={() => setView("mobile")}>Mobile</button>
+        <button className={view === "both" ? "on" : ""} onClick={() => setView("both")}>Both</button>
+      </div>
+
+      {view === "desktop" && (
+        <div className="app-shell" data-screen-label="Desktop · Dashboard">
+          <DesktopContent />
+        </div>
+      )}
+      {view === "mobile" && (
+        <div data-screen-label="Mobile · Dashboard" style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", justifyContent: "center" }}>
+          <MobileContent />
+        </div>
+      )}
+      {view === "both" && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 400px", gap: 30, alignItems: "start", padding: "20px 30px" }}>
+          <div data-screen-label="Desktop · Dashboard" style={{ minWidth: 0 }}>
+            <DesktopContent />
+          </div>
+          <div data-screen-label="Mobile · Dashboard">
+            <MobileContent />
+          </div>
+        </div>
+      )}
+
+      {openExpense && (
+        <ExpenseDetail
+          expense={openExpense}
+          members={membersWithGhost}
+          onClose={() => setOpenExpense(null)}
+          baseCurrency={data.trip.baseCurrency}
+        />
+      )}
+      {addingExpense && (
+        <AddExpense
+          members={members}
+          trip={{ ...data.trip, marketRates: data.marketRates }}
+          onClose={() => setAddingExpense(false)}
+          onSave={handleAddExpense}
+        />
+      )}
+      {addingMember && (
+        <AddMemberModal
+          existingCount={members.length}
+          onClose={() => setAddingMember(false)}
+          onAdd={handleAddMember}
+        />
+      )}
+      {removingMember && (
+        <RemoveMemberModal
+          member={removingMember}
+          expenses={expenses}
+          balances={balances}
+          onClose={() => setRemovingMember(null)}
+          onConfirm={handleConfirmRemove}
+        />
+      )}
+
+      <TweaksPanel
+        open={tweaksOpen}
+        theme={theme} setTheme={setTheme}
+        density={density} setDensity={setDensity}
+        currencyMode={currencyMode} setCurrencyMode={setCurrencyMode}
+      />
+
+      {toast && <div className="toast">{toast}</div>}
+    </>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+
+
+</script>
+</body>
+</html>
